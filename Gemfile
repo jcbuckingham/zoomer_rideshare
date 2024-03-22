@@ -16,7 +16,7 @@ gem 'redis-rails', "~> 5.0.2"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 
-gem "rest-client", "~> 2.1.0"
+gem "httparty"
 
 # Use Sidekiq as the ActiveJob adapter
 gem "sidekiq", "~> 7.2.2"
@@ -40,6 +40,7 @@ gem "bootsnap", require: false
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
+gem "awesome_print"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -51,6 +52,5 @@ group :test do
   # Use rspec as the testing library
   gem "rspec-rails", "~> 6.1.2"
   gem "webmock", "~> 3.23.0"
-  gem "awesome_print"
 end
 

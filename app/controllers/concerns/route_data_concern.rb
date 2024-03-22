@@ -4,8 +4,10 @@ module RouteDataConcern
     class DriverRides < Struct.new(:routes_info)
         def sort_routes_by_score!
             # Sort the routes_info array by ride_score in descending order
-            routes_info.sort_by! { |route_info| -route_info.ride_score }
-          end
+            routes_info.sort_by! do |route_info|
+                -route_info.ride_score 
+            end
+        end
     end
 
     class RouteInfo < Struct.new(
@@ -20,10 +22,13 @@ module RouteDataConcern
 
     def fetch_ride_data(driver, rides)
         client = OpenrouteserviceClient.new
-        json_data = client.get_matrix_duration(driver, rides)
-        driver_rides = process_matrix_route_data(json_data["duration"], json_data["distance"], rides)
+        json_data = client.get_matrix_data(driver, rides)
+        
+        driver_rides = process_matrix_route_data(json_data["durations"], json_data["distances"], rides)
+
         # Calculate all scores and add them to the DriverRides
-        RideScoreCalculator.new(ride, driver_rides)
+        rsc = RideScoreCalculator.new(driver_rides)
+        rsc.calculate_scores
 
         # Sort the DriverRides.routes_info by score
         driver_rides.sort_routes_by_score!
@@ -33,16 +38,15 @@ module RouteDataConcern
 
     # The result received from Openrouteservice's matrix endpoint gives all the durations
     # required in one API call, so it severely cuts down on network calls, but we need to 
-    # traverse the matrix programatically in order to discover the durations for the driver's
+    # traverse the matrix programatically in order to discover the relevant data for the driver's
     # commute to each ride and the duration from the ride's start_address to its destination_address.
     #
     # The logic is as follows:
     def process_matrix_route_data(durations, distances, rides)
         # Collect results in the format [{commute: <duration>, ride: <duration>},...] for each ride.
-        result = []
         driver_rides = DriverRides.new(routes_info=[])
 
-        # As stated in OpenrouteserviceClient.get_matrix_duration(), the first element in the 
+        # As stated in OpenrouteserviceClient.get_matrix_data(), the first element in the 
         # durations array from Openrouteservice is an array of the durations from the driver's 
         # home_address to all rides' start_addresses.
         driver_to_start_address_durations = durations[0]
@@ -98,7 +102,7 @@ module RouteDataConcern
         # Collect results in the format [{commute: <duration>, ride: <duration>},...] for each ride.
         result = []
 
-        # As stated in OpenrouteserviceClient.get_matrix_duration(), the first element in the 
+        # As stated in OpenrouteserviceClient.get_matrix_data(), the first element in the 
         # durations array from Openrouteservice is an array of the durations from the driver's 
         # home_address to all rides' start_addresses.
         driver_to_start_address_durations = durations[0]

@@ -1,0 +1,1 @@
+# ::HTTParty.logger = Rails.logger

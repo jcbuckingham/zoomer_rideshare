@@ -14,6 +14,12 @@ RSpec.describe RidesController, type: :controller do
         { foo: "bar" }
     }
 
+    let(:driver) { Driver.create!(home_address: '8.681495,49.41461') }
+    let!(:ride1) { Ride.create!(start_address: '8.6816,49.41401', destination_address: '8.682301,49.414658') }
+    let!(:ride2) { Ride.create!(start_address: '8.68171,49.41401', destination_address: '8.692301,49.414658') }
+    let!(:ride3) { Ride.create!(start_address: '8.6825,49.41401', destination_address: '8.682311,49.414658') }
+    let!(:ride4) { Ride.create!(start_address: '8.6815,49.41401', destination_address: '8.692321,49.41461') }
+
     describe "GET #show" do
         it "returns a success response" do
             ride = Ride.create!(valid_attributes)
@@ -59,38 +65,73 @@ RSpec.describe RidesController, type: :controller do
     end
 
     describe 'GET #index' do
-        let(:driver) { Driver.create!(home_address: '8.6506,49.41401') }
-        let(:ride1) { Ride.create!(start_address: '8.6436,49.41401', destination_address: '8.682301,49.420658') }
-        let(:ride2) { Ride.create!(start_address: '8.6936,49.41401', destination_address: '8.692301,49.420658') }
-
         before do
-            allow(Driver).to receive(:find).with(driver.id.to_s).and_return(driver)
-            allow(Ride).to receive(:order).with(id: :desc).and_return([ride1, ride2])
-
             # Stub the method call to fetch ride data
-            allow(controller).to receive(:fetch_ride_data).and_return([ride1, ride2])
+            # allow(controller).to receive(:fetch_ride_data).and_return([ride1, ride2, ride3, ride4])
+            allow(HTTParty).to receive(:post).and_return(
+                double(
+                    HTTParty::Response,
+                    body: File.read('spec/fixtures/matrix_duration_response.json'),
+                    code: 200 # Assuming you want to return a success response code
+                )
+            )
         end
 
-        it 'returns a list of rides for the driver' do
+        it 'returns a list of rides for the driver sorted by score' do
+            driver_rides = 
             get :index, params: { driver_id: driver.id }
             expect(response).to have_http_status(:success)
-            expect(JSON.parse(response.body)).to eq([ride1.as_json, ride2.as_json])
+            expected_response = {
+                "page" => 1,
+                "per_page" => 10,
+                "rides" => [ride3.as_json, ride4.as_json, ride2.as_json, ride1.as_json],
+                "total_rides" => 4
+            }
+
+            expect(JSON.parse(response.body)).to eq(expected_response)
         end
+
+        it 'is pagination' do
+            # Define different page and per_page values
+            page = 2
+            per_page = 2
+            
+            # Calculate the expected rides for the specified page and per_page
+            expected_rides = [ride2.as_json, ride1.as_json]
+            
+            # Calculate the total number of rides (for total_rides field)
+            total_rides = Ride.count
+          
+            # Call the index action with the specified page and per_page values
+            get :index, params: { driver_id: driver.id, page: page, per_page: per_page }
+            
+            # Check if the response is successful
+            expect(response).to have_http_status(:success)
+            
+            # Construct the expected response hash
+            expected_response = {
+              "page" => page,
+              "per_page" => per_page,
+              "rides" => expected_rides,
+              "total_rides" => total_rides
+            }
+          
+            # Check if the response body matches the expected response
+            expect(JSON.parse(response.body)).to eq(expected_response)
+          end
     end
 
     describe "RouteDataConcern" do
-        let!(:ride1) { Ride.create!(start_address: '8.6436,49.41401', destination_address: '8.682301,49.420658') }
-        let!(:ride2) { Ride.create!(start_address: '8.6936,49.41401', destination_address: '8.692301,49.420658') }
-
         it "fetches and processes all ride data from Openrouteservice" do
             data = JSON.parse(File.read('spec/fixtures/matrix_duration_response.json'))
             durations = data["durations"]
             distances = data["distances"]
             expected_result = [
-                { commute_duration: 862.09, commute_distance: 4.59, ride_duration: 569.45, ride_distance: 2.76 }, 
-                { commute_duration: 256.58, commute_distance: 0.88, ride_duration: 192.43, ride_distance: 0.6 }
+                { commute_duration: 14.97, commute_distance: 0.04, ride_duration: 94.3, ride_distance: 0.24 }, 
+                { commute_duration: 14.45, commute_distance: 0.04, ride_duration: 228.56, ride_distance: 0.77 },
+                { commute_duration: 56.94, commute_distance: 0.15, ride_duration: 108.56, ride_distance: 0.28 }, 
+                { commute_duration: 1.6, commute_distance: 0.0, ride_duration: 2.38, ride_distance: 0.01 }
             ]
-
             result = subject.process_matrix_route_data(durations, distances, Ride.order(id: :desc))
             expect(result.class).to be(RouteDataConcern::DriverRides)
 

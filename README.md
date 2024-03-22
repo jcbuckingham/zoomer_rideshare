@@ -54,7 +54,7 @@ curl -v \
   -d '{"driver":{"home_address":"8.685072,49.421518"}}' \
   http://localhost:3000/drivers
 
-  curl -X POST -H "Content-Type: application/json" -H 'Authorization: 5b3ce3597851110001cf6248f34895a0bde54f7a981a91c84076381e' -d '{"locations":[[8.685072,49.421518],[8.6436,49.41401],[8.682301,49.420658],[8.6936,49.41401],[8.692301,49.420658],[8.6946,49.41401],[8.692121,49.420558],[8.69447,49.41461],[8.692801,49.420318],[8.694495,49.41461],[8.692872,49.420318],[8.691495,49.41461],[8.690872,49.420318],[7.681495,49.41461],[7.689872,49.420318],[8.681495,49.41461],[8.687872,49.420318]],"metrics":["duration", "distance"]}' https://api.openrouteservice.org/v2/matrix/driving-car
+  curl -X POST -H "Content-Type: application/json" -H 'Authorization: 5b3ce3597851110001cf6248f34895a0bde54f7a981a91c84076381e' -d '{"locations":[[8.681495,49.41461],[8.6816,49.41401],[8.682301,49.414658],[8.68171,49.41401],[8.692301,49.414658],[8.6825,49.41401],[8.682311,49.414658],[8.6815,49.41464],[8.6814,49.41461]],"metrics":["duration", "distance"],"resolve_locations":"false","units":"mi"}' https://api.openrouteservice.org/v2/matrix/driving-car
 
 curl -X POST \
   'https://api.openrouteservice.org/v2/matrix/driving-car' \
