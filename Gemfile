@@ -8,15 +8,22 @@ gem "rails", "~> 7.1.3"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
 
+# Use Redis for Sidekiq storage and as a cache
+gem "redis", "~> 5.1.0"
+gem 'redis-store', "~> 1.10.0"
+gem 'redis-rails', "~> 5.0.2"
+
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 
 gem "rest-client", "~> 2.1.0"
 
+# Use Sidekiq as the ActiveJob adapter
+gem "sidekiq", "~> 7.2.2"
+
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 # gem "jbuilder"
 
-# Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
@@ -44,5 +51,6 @@ group :test do
   # Use rspec as the testing library
   gem "rspec-rails", "~> 6.1.2"
   gem "webmock", "~> 3.23.0"
+  gem "awesome_print"
 end
 

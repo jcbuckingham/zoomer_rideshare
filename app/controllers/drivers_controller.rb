@@ -6,7 +6,7 @@ class DriversController < ApplicationController
         render json: @drivers
     end
 
-    # GET /drivers/1
+    # GET /drivers/:id
     def show
         @driver = Driver.find(params[:id])
         render json: @driver
@@ -22,7 +22,7 @@ class DriversController < ApplicationController
         end
     end
 
-    # DELETE /drivers/1
+    # DELETE /drivers/:id
     def destroy
         @driver = Driver.find(params[:id])
         @driver.destroy if @driver

@@ -1,12 +1,17 @@
 require 'rails_helper'
 
 RSpec.describe DriversController, type: :controller do
+    # TODO: factorybot
     let(:valid_attributes) {
-        { home_address: '8.681495,49.43461' }
+        { home_address: '8.681301,49.43461' }
     }
 
     let(:invalid_attributes) {
         { foo: "bar" }
+    }
+
+    let(:valid_ride_attributes) {
+        { start_address: '8.681495,49.41461', destination_address: '8.687872,49.420318' }
     }
 
     describe "GET #index" do
@@ -16,6 +21,27 @@ RSpec.describe DriversController, type: :controller do
             expect(response).to be_successful
         end
     end
+
+    describe "GET drivers/:driver_id/rides#index" do
+        let(:driver) { Driver.create!(valid_attributes) } # Assuming you have FactoryBot set up for Driver model
+        let!(:rides) { Ride.create!(valid_ride_attributes) } # Assuming you have FactoryBot set up for Ride model
+    
+        it "returns a success response" do
+            get :index, params: { driver_id: driver.id }, format: :json
+            expect(response).to be_successful
+        end
+    
+        it "returns all rides for the driver" do
+            get :index, params: { driver_id: driver.id }, format: :json
+            expect(response.parsed_body.size).to eq(1)
+        end
+    
+        it "returns rides in JSON format" do
+            get :index, params: { driver_id: driver.id }, format: :json
+            expect(response.content_type).to eq("application/json; charset=utf-8")
+        end
+    end
+  
 
     describe "GET #show" do
         it "returns a success response" do
@@ -35,7 +61,6 @@ RSpec.describe DriversController, type: :controller do
 
             it "renders a JSON response with the new driver" do
                 post :create, params: { driver: valid_attributes }, format: :json
-                print({ driver: valid_attributes }.to_json)
                 expect(response).to have_http_status(:created)
                 expect(response.content_type).to eq('application/json; charset=utf-8')
             end

@@ -1,12 +1,23 @@
-class RidesController < ApplicationController
 
-    # GET /rides
+class RidesController < ApplicationController
+    include RouteDataConcern
+
+    # GET driver/:driver_id/rides
     def index
-        @rides = Ride.all
-        render json: @rides
+        @driver = Driver.find(params[:driver_id])
+
+        # TODO: query for rides paginated
+
+        @rides = Ride.order(id: :desc)
+
+        rides = fetch_ride_data(@driver, @rides)
+
+        # sort by rides.score
+
+        render json: rides
     end
   
-    # GET /rides/1
+    # GET /rides/:id
     def show
         @ride = Ride.find(params[:id])
         render json: @ride
@@ -16,13 +27,18 @@ class RidesController < ApplicationController
     def create
         begin
             @ride = Ride.create!(ride_params)
-            render json: @ride, status: :created, location: @ride
         rescue => e
             render json: { error: e.message }, status: :bad_request
+            return
         end
+
+        # Enqueue Sidekiq job to fetch ride data
+        FetchRouteDurationWorker.perform_async(@ride.id)
+
+        render json: @ride, status: :created, location: @ride
     end
   
-    # DELETE /rides/1
+    # DELETE /rides/:id
     def destroy
         @ride = Ride.find(params[:id])
         @ride.destroy if @ride

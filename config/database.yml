@@ -82,3 +82,10 @@ production:
   database: hopskipdrive_rails_production
   username: hopskipdrive_rails
   password: <%= ENV["HOPSKIPDRIVE_RAILS_DATABASE_PASSWORD"] %>
+
+# Redis configuration
+development_redis:
+  url: redis://localhost:6379/0
+
+test_redis:
+  url: redis://localhost:6379/1
