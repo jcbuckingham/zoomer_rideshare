@@ -144,6 +144,8 @@ To run the API locally:
 
 - `gem install sidekiq`
 
+- copy `.sample_env` to a file called `.env` and replace `your-api-key` with a real key from Openrouteservice
+
 2. Run specs:
 
 - `rspec`
@@ -179,28 +181,3 @@ To run the API locally:
 
 Try: 
 - `brew services restart redis`
-
-curl -v \
-  -H "Accept: application/json" \
-  -H "Content-type: application/json" \
-  -X POST \
-  -d '{"ride":{"destination_address":"2101 NE Andresen Rd, Vancouver, WA 98661","start_address":"2001 E 5th St, Vancouver, WA 98661"}}' \
-  http://localhost:3000/rides
-
-curl -v \
-  -H "Accept: application/json" \
-  -H "Content-type: application/json" \
-  -X POST \
-  -d '{"driver":{"home_address":"6701 E Mill Plain Blvd, Vancouver, WA 98661"}}' \
-  http://localhost:3000/drivers
-
-  curl -X POST -H "Content-Type: application/json" -H 'Authorization: 5b3ce3597851110001cf6248f34895a0bde54f7a981a91c84076381e' -d '{"locations":[[-122.602612,45.626124],[-122.532561,45.638207],[-122.602612,45.626124]],"metrics":["duration", "distance"],"resolve_locations":"false","units":"mi"}' https://api.openrouteservice.org/v2/matrix/driving-car
-
-curl -X POST \
-  'https://api.openrouteservice.org/v2/matrix/driving-car' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -H 'Authorization: 5b3ce3597851110001cf6248f34895a0bde54f7a981a91c84076381e' \
-  -d '{"locations":[[8.685072,49.421518],[8.6436,49.41401],[8.682301,49.420658],[8.6936,49.41401],[8.692301,49.420658]],"metrics":["duration","distance"],"resolve_locations":"false","units":"mi"}' 
-
-  curl 'localhost:3000/rides?driver_id=6'

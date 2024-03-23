@@ -1,0 +1,5 @@
+OPENROUTESERVICE_API_KEY = your-api-key
+OPENROUTESERVICE_ENDPOINT = https://api.openrouteservice.org
+
+REDIS_CACHE_URL=redis://127.0.0.1:6379
+DOMAIN_NAME=localhost
