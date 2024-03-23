@@ -49,7 +49,7 @@ RSpec.describe Ride, type: :model do
             result = Ride.process_matrix_route_data(durations, distances, Ride.order(id: :desc))
             expect(result.class).to be(Ride::DriverRides)
 
-            result.routes_info.zip(expected_result).each do |res, exp|
+            result.rides_info.zip(expected_result).each do |res, exp|
                 expect(res.commute_duration).to eq(exp[:commute_duration])
                 expect(res.commute_distance).to eq(exp[:commute_distance])
                 expect(res.ride_duration).to eq(exp[:ride_duration])
@@ -77,11 +77,11 @@ RSpec.describe Ride, type: :model do
                     [1.4, 0.4, 0.34, 0.2, 0]
                 ]
             })
-            expect_any_instance_of(RideScoreCalculator).to receive(:calculate_scores).and_call_original
+            driver_rides = Ride.fetch_ride_data(driver, Ride.all)
 
-            result = Ride.fetch_ride_data(driver, Ride.all)
-
-            expect(result).to eq([ride1, ride2])
+            expect(driver_rides.rides_info.first.ride).to eq(ride1)
+            expect(driver_rides.rides_info.last.ride).to eq(ride2)
+            expect(driver_rides.rides_info.size).to eq(2)
         end
     end
 end

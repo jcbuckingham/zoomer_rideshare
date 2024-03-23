@@ -1,10 +1,19 @@
-
 class RidesController < ApplicationController
     include PaginationService
 
-    # GET /rides
+    # GET /rides?driver_id=:driver_id
     def index
-        @driver = Driver.find(params[:driver_id])
+        unless params[:driver_id]
+            render json: { error: "Param driver_id is required" }, status: :bad_request
+            return
+        end
+
+        begin
+            @driver = Driver.find(params[:driver_id])
+        rescue ActiveRecord::RecordNotFound
+            render json: { error: "Driver not found" }, status: :not_found
+            return
+        end
 
         # First check the cache for pre-ordered Ride data and return one page of results
         paginated_cached_result = PaginationService.check_driver_cache(@driver.id, params[:page], params[:per_page])
@@ -20,6 +29,9 @@ class RidesController < ApplicationController
         rescue HTTParty::Error, JSON::ParserError => e
             render json: { error: "Ride information could not be fetched.", status: :service_unavailable }
             return
+        rescue => e
+            render json: { error: "An unexpected error occurred: #{e.message}", status: :internal_server_error }
+            return
         end
 
         # Paginate the Rides and return the paginated response
@@ -29,7 +41,12 @@ class RidesController < ApplicationController
 
     # GET /rides/:id
     def show
-        @ride = Ride.find(params[:id])
+        begin
+            @ride = Ride.find(params[:id])
+        rescue ActiveRecord::RecordNotFound
+            render json: { error: "Ride not found" }, status: :not_found
+            return
+        end
         render json: @ride
     end
   
@@ -42,7 +59,7 @@ class RidesController < ApplicationController
             return
         end
 
-        # Enqueue Sidekiq job to fetch ride coords
+        # Enqueue Sidekiq job to fetch ride coords offline
         FetchAddressCoordsWorker.perform_async("Ride", @ride.id)
 
         render json: @ride, status: :created, location: @ride
@@ -50,7 +67,12 @@ class RidesController < ApplicationController
   
     # DELETE /rides/:id
     def destroy
-        @ride = Ride.find(params[:id])
+        begin
+            @ride = Ride.find(params[:id])
+        rescue => e
+            render json: { error: e.message }, status: :bad_request
+            return
+        end
         @ride.destroy if @ride
     end
   

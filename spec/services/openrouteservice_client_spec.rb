@@ -114,7 +114,7 @@ RSpec.describe OpenrouteserviceClient do
             end
 
             it 'returns the coordinates' do
-                expect(client.convert_address_to_coords(address)).to eq("#{latitude},#{longitude}")
+                expect(client.convert_address_to_coords(address)).to eq("#{longitude},#{latitude}")
             end
         end
 

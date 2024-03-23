@@ -1,14 +1,12 @@
 class DriversController < ApplicationController
-    
-    # GET /drivers
-    def index
-        @drivers = Driver.all
-        render json: @drivers
-    end
-
     # GET /drivers/:id
     def show
-        @driver = Driver.find(params[:id])
+        begin
+            @driver = Driver.find(params[:id])
+        rescue ActiveRecord::RecordNotFound
+            render json: { error: "Driver not found" }, status: :not_found
+            return
+        end
         render json: @driver
     end
 
@@ -28,7 +26,12 @@ class DriversController < ApplicationController
 
     # DELETE /drivers/:id
     def destroy
-        @driver = Driver.find(params[:id])
+        begin
+            @driver = Driver.find(params[:id])
+        rescue => e
+            render json: { error: e.message }, status: :bad_request
+            return
+        end
         @driver.destroy if @driver
     end
 

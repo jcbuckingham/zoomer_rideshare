@@ -13,36 +13,7 @@ RSpec.describe DriversController, type: :controller do
     let(:valid_ride_attributes) {
         { start_address: '10 43rd Ave, Queens, NY 11101', destination_address: '25-03 40th Ave, Queens, NY 11101' }
     }
-
-    describe "GET #index" do
-        it "returns a success response" do
-            Driver.create!(valid_attributes)
-            get :index, format: :json
-            expect(response).to be_successful
-        end
-    end
-
-    describe "GET drivers/:driver_id/rides#index" do
-        let(:driver) { Driver.create!(valid_attributes) } # Assuming you have FactoryBot set up for Driver model
-        let!(:rides) { Ride.create!(valid_ride_attributes) } # Assuming you have FactoryBot set up for Ride model
-    
-        it "returns a success response" do
-            get :index, params: { driver_id: driver.id }, format: :json
-            expect(response).to be_successful
-        end
-    
-        it "returns all rides for the driver" do
-            get :index, params: { driver_id: driver.id }, format: :json
-            expect(response.parsed_body.size).to eq(1)
-        end
-    
-        it "returns rides in JSON format" do
-            get :index, params: { driver_id: driver.id }, format: :json
-            expect(response.content_type).to eq("application/json; charset=utf-8")
-        end
-    end
   
-
     describe "GET #show" do
         it "returns a success response" do
             driver = Driver.create!(valid_attributes)

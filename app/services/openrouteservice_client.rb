@@ -20,6 +20,7 @@ class OpenrouteserviceClient
         # The durations will be returned in the same order, so to process the result, we will also
         # rely on these pairings.
         rides.each do |ride|
+            next if ride.start_coords.nil? || ride.destination_coords.nil?
             location_pairs << ride.start_coords.split(",").map(&:to_f)
             location_pairs << ride.destination_coords.split(",").map(&:to_f)
         end
@@ -58,7 +59,7 @@ class OpenrouteserviceClient
             coordinates = data['features'][0]['geometry']['coordinates']
             latitude = coordinates[1]
             longitude = coordinates[0]
-            return "#{latitude},#{longitude}"
+            return "#{longitude},#{latitude}"
         else
             raise InvalidAddressError
         end

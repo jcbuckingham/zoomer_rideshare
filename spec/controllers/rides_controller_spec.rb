@@ -158,5 +158,15 @@ RSpec.describe RidesController, type: :controller do
                 expect(Rails.cache).to have_received(:read).with("rides_for_driver_#{driver.id}")
             end
         end
+
+        context "without driver_id param" do
+            it 'returns an error' do
+                post :index
+                expect(response).to have_http_status(:bad_request)
+                expect(response.parsed_body["error"]).to eq(
+                    "Param driver_id is required"
+                )
+            end
+        end
     end
 end

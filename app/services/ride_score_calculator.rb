@@ -3,8 +3,10 @@ class RideScoreCalculator
         @driver_rides=driver_rides
     end
   
+    # Uses all data collected for the driver in @driver_rides to calculate a score per
+    # ride and saves the score to the @driver_rides
     def calculate_scores
-        @driver_rides.routes_info.each do |ride_data|
+        @driver_rides.rides_info.each do |ride_data|
             ride_earnings = calculate_earnings(ride_data)
             total_duration = ride_data.commute_duration + ride_data.ride_duration
             ride_data.ride_score = ride_earnings.to_f / total_duration
@@ -13,6 +15,8 @@ class RideScoreCalculator
   
     private
   
+    # $12 + $1.50 per mile beyond 5 miles + (ride duration) * $0.70 per minute 
+    # beyond 15 minutes
     def calculate_earnings(ride)
         base_earnings = 12
         miles_beyond_5 = [ride.ride_distance - 5, 0].max
