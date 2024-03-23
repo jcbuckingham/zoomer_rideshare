@@ -5,7 +5,7 @@ RSpec.describe RideScoreCalculator do
         let(:ride1) { Ride.create!(start_address: '10 43rd Ave, Queens, NY 11101', destination_address: '25-03 40th Ave, Queens, NY 11101') }
         let(:ride2) { Ride.create!(start_address: '965 1st Ave., New York, NY 10022', destination_address: '10 41st Ave, Queens, NY 11101') }
         let(:route_info1) do
-            RouteDataConcern::RouteInfo.new(
+            Ride::RideInfo.new(
                 commute_distance: 10,
                 commute_duration: 0.5,
                 ride_distance: 7,
@@ -14,7 +14,7 @@ RSpec.describe RideScoreCalculator do
             )
         end
         let(:route_info2) do
-            RouteDataConcern::RouteInfo.new(
+            Ride::RideInfo.new(
                 commute_distance: 12.5,
                 commute_duration: 1,
                 ride_distance: 5,
@@ -22,7 +22,7 @@ RSpec.describe RideScoreCalculator do
                 ride: ride2
             )
         end
-        let(:driver_rides) { RouteDataConcern::DriverRides.new(routes_info:[route_info1, route_info2]) }
+        let(:driver_rides) { Ride::DriverRides.new(routes_info:[route_info1, route_info2]) }
         let(:calculator) { RideScoreCalculator.new(driver_rides) }
 
         it 'returns the correct scores for each ride' do

@@ -1,11 +1,6 @@
 require 'rails_helper'
-# require_relative '../../app/controllers/concerns/route_data_concern.rb'
 
 RSpec.describe RidesController, type: :controller do
-    controller RidesController do
-        include RouteDataConcern
-    end
-
     let(:valid_attributes) {
         { start_address: '10 43rd Ave, Queens, NY 11101', destination_address: '25 40th Ave, Queens, NY 11101' }
     }
@@ -99,7 +94,7 @@ RSpec.describe RidesController, type: :controller do
             allow(HTTParty).to receive(:post).and_return(
                 double(
                     HTTParty::Response,
-                    body: File.read('spec/fixtures/matrix_duration_response.json'),
+                    body: File.read('spec/fixtures/matrix_response.json'),
                     code: 200 # Assuming you want to return a success response code
                 )
             )
@@ -161,30 +156,6 @@ RSpec.describe RidesController, type: :controller do
                 expect(JSON.parse(response.body)['rides'].count).to eq(3)
                 expect(JSON.parse(response.body)['rides']).to eq([ride4.as_json, ride3.as_json, ride2.as_json])
                 expect(Rails.cache).to have_received(:read).with("rides_for_driver_#{driver.id}")
-            end
-        end
-    end
-
-    describe "RouteDataConcern" do
-        it "fetches and processes all ride data from Openrouteservice" do
-            data = JSON.parse(File.read('spec/fixtures/matrix_duration_response.json'))
-            durations = data["durations"]
-            distances = data["distances"]
-            expected_result = [
-                { commute_duration: 14.97, commute_distance: 0.04, ride_duration: 94.3, ride_distance: 0.24 }, 
-                { commute_duration: 14.45, commute_distance: 0.04, ride_duration: 228.56, ride_distance: 0.77 },
-                { commute_duration: 56.94, commute_distance: 0.15, ride_duration: 108.56, ride_distance: 0.28 }, 
-                { commute_duration: 1.6, commute_distance: 0.0, ride_duration: 2.38, ride_distance: 0.01 }
-            ]
-            result = subject.process_matrix_route_data(durations, distances, Ride.order(id: :desc))
-            expect(result.class).to be(RouteDataConcern::DriverRides)
-
-            result.routes_info.zip(expected_result).each do |res, exp|
-                expect(res.commute_duration).to eq(exp[:commute_duration])
-                expect(res.commute_distance).to eq(exp[:commute_distance])
-                expect(res.ride_duration).to eq(exp[:ride_duration])
-                expect(res.ride_distance).to eq(exp[:ride_distance])
-                expect(res.ride.class).to eq(Ride)
             end
         end
     end
