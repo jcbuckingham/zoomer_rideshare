@@ -16,7 +16,7 @@ Retrieves rides for a specific driver.
 
 #### Pagination
 
-Pagination is implemented using query parameters `page` and `per_page`.
+Pagination is implemented using query parameters `page` and `per_page`.  The response is cached for 5 minutes, so if newly created Ride records don't appear in the response, try again later.
 
 - `page`: The page offset, defaults to 1.
 - `per_page`: The number of results per page, defaults to 10.
@@ -165,13 +165,6 @@ To run the API locally:
 
 ## Notes:
 ### Known issues:
-    Cache is not expiring as expected, but it seemed like a fiddly issue to 
-    spend time on here.  If this was a real feature going to production I would 
-    ensure that the cache is expiring correctly, but I hope you will accept that 
-    since I have limited free time in my week and this is just a demonstration 
-    of skill and not a real product, that my time is better served by calling 
-    this issue a "I would fix if I had more time".
-
     If an error is encountered for Redis similar to:
     "ERROR: heartbeat: MISCONF Redis is configured to save RDB snapshots, but 
     it's currently unable to persist to disk. Commands that may modify the data 

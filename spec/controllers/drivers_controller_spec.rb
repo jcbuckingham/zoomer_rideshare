@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe DriversController, type: :controller do
-    # TODO: factorybot
     let(:valid_attributes) {
         { home_address: '46 11th St, Queens, NY 11101' }
     }
@@ -15,10 +14,19 @@ RSpec.describe DriversController, type: :controller do
     }
   
     describe "GET #show" do
-        it "returns a success response" do
-            driver = Driver.create!(valid_attributes)
-            get :show, params: { id: driver.to_param }, format: :json
-            expect(response).to be_successful
+        context "with a valid driver" do
+            it "returns a success response" do
+                driver = Driver.create!(valid_attributes)
+                get :show, params: { id: driver.to_param }, format: :json
+                expect(response).to be_successful
+            end
+        end
+
+        context "with an invalid driver" do
+            it "returns a not_found response" do
+                get :show, params: { id: 100 }, format: :json
+                expect(response).to have_http_status(:not_found)
+            end
         end
     end
 
@@ -49,11 +57,20 @@ RSpec.describe DriversController, type: :controller do
     end
 
     describe "DELETE #destroy" do
-        it "destroys the requested driver" do
-            driver = Driver.create!(valid_attributes)
-            expect {
-                delete :destroy, params: { id: driver.to_param }, format: :json
-            }.to change(Driver, :count).by(-1)
+        context "with a valid driver" do
+            it "destroys the requested driver" do
+                driver = Driver.create!(valid_attributes)
+                expect {
+                    delete :destroy, params: { id: driver.to_param }, format: :json
+                }.to change(Driver, :count).by(-1)
+            end
+        end
+
+        context "with an invalid driver" do
+            it "returns bad_request" do
+                delete :destroy, params: { id: 100 }, format: :json
+                expect(response).to have_http_status(:bad_request)
+            end
         end
     end
 end

@@ -14,7 +14,6 @@ module RideProcessing
             ride_ids = ranked_rides.map(&:id)
 
             # Cache the paginated response and expire it in 5 minutes so the driver can see new rides without much delay
-            # TODO: move this
             cache_key = "rides_for_driver_#{driver.id}"
             Rails.cache.write(cache_key, ride_ids, expires_in: 5.minutes) unless ride_ids.empty?
     
@@ -56,7 +55,6 @@ module RideProcessing
             driver_to_start_coords_distances = distances[0]
 
             # Creates a separate index for iterating through the rides records
-            # TODO: enumerable?
             ride_index = 0
     
             # The rest of the elements in durations are in pairs, first a ride's start_coords to all 

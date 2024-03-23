@@ -4,7 +4,6 @@ require 'json'
 class InvalidAddressError < StandardError
 end
 
-# TODO: raise errors instead of returning nil
 class OpenrouteserviceClient
     def initialize
         @api_key = ENV['OPENROUTESERVICE_API_KEY']

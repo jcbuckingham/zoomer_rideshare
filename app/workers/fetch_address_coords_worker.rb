@@ -25,8 +25,7 @@ class FetchAddressCoordsWorker
             driver.save!
         end
     rescue HTTParty::Error, JSON::ParserError => e
-        Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
-        Rails.logger.error("Error fetching coords from Openrouteservice: #{e.message}")
+        Rails.logger.error("Error fetching coords from Openrouteservice: #{e.message}; Backtrace: #{e.backtrace.join("\n")}")
     rescue => e
         ap e
         Rails.logger.error("Database error. Backtrace: #{e.backtrace.join("\n")}")

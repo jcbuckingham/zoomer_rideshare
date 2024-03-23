@@ -13,7 +13,7 @@ RSpec.describe OpenrouteserviceClient do
             double(
                 HTTParty::Response,
                 body: '{"durations": [[0, 862.09, 55.35], [256.58, 243.39, 262.86], [243.39, 473.36, 232.38]], "distances": [[0, 10.5, 2.2], [12.3, 5.7, 20.1], [15.9, 25.6, 8.3]]}',
-                code: 200 # Assuming you want to return a success response code
+                code: 200
             )
         )
     end
@@ -49,7 +49,6 @@ RSpec.describe OpenrouteserviceClient do
         end
 
         it 'makes the correct API call' do
-            # expect rides in desc order by id
             expected_payload = {
                 'locations' => [
                     [8.681495, 49.41461],  # driver.home_coords
@@ -74,7 +73,7 @@ RSpec.describe OpenrouteserviceClient do
                 double(
                     HTTParty::Response,
                     body: '{"durations": [[0, 862.09, 55.35], [256.58, 243.39, 262.86], [243.39, 473.36, 232.38]]}',
-                    code: 200 # Assuming you want to return a success response code
+                    code: 200
                 )
             )
             rides = Ride.order(id: :desc)

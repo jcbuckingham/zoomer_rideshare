@@ -44,10 +44,19 @@ RSpec.describe RidesController, type: :controller do
     end
 
     describe "GET #show" do
-        it "returns a success response" do
-            ride = Ride.create!(valid_attributes)
+        context "with a valid ride" do
+            it "returns a success response" do
+                ride = Ride.create!(valid_attributes)
             get :show, params: { id: ride.to_param }, format: :json
             expect(response).to be_successful
+            end
+        end
+
+        context "with an invalid ride" do
+            it "returns a not_found response" do
+                get :show, params: { id: 100 }, format: :json
+                expect(response).to have_http_status(:not_found)
+            end
         end
     end
 
@@ -79,23 +88,30 @@ RSpec.describe RidesController, type: :controller do
     end
 
     describe "DELETE #destroy" do
-        it "destroys the requested ride" do
-            ride = Ride.create!(valid_attributes)
-            expect {
-                delete :destroy, params: { id: ride.to_param }, format: :json
-            }.to change(Ride, :count).by(-1)
+        context "with a valid ride" do
+            it "destroys the requested ride" do
+                ride = Ride.create!(valid_attributes)
+                expect {
+                    delete :destroy, params: { id: ride.to_param }, format: :json
+                }.to change(Ride, :count).by(-1)
+            end
+        end
+
+        context "with an invalid ride" do
+            it "returns bad_request" do
+                delete :destroy, params: { id: 100 }, format: :json
+                expect(response).to have_http_status(:bad_request)
+            end
         end
     end
 
     describe 'GET #index' do
         before do
-            # Stub the method call to fetch ride data
-            # allow(controller).to receive(:fetch_ride_data).and_return([ride1, ride2, ride3, ride4])
             allow(HTTParty).to receive(:post).and_return(
                 double(
                     HTTParty::Response,
                     body: File.read('spec/fixtures/matrix_response.json'),
-                    code: 200 # Assuming you want to return a success response code
+                    code: 200
                 )
             )
         end
@@ -115,31 +131,18 @@ RSpec.describe RidesController, type: :controller do
         end
 
         it 'is paginated' do
-            # Define different page and per_page values
-            page = 2
-            per_page = 2
-            
-            # Calculate the expected rides for the specified page and per_page
-            expected_rides = [ride3.as_json, ride4.as_json]
-            
-            # Calculate the total number of rides (for total_rides field)
+            expected_rides = [ride3.as_json, ride4.as_json]            
             total_rides = Ride.count
           
-            # Call the index action with the specified page and per_page values
-            get :index, params: { driver_id: driver.id, page: page, per_page: per_page }
-            
-            # Check if the response is successful
+            get :index, params: { driver_id: driver.id, page: 2, per_page: 2 }
             expect(response).to have_http_status(:success)
             
-            # Construct the expected response hash
             expected_response = {
-              "page" => page,
-              "per_page" => per_page,
+              "page" => 2,
+              "per_page" => 2,
               "rides" => expected_rides,
               "total_rides" => total_rides
             }
-          
-            # Check if the response body matches the expected response
             expect(JSON.parse(response.body)).to eq(expected_response)
         end
 
