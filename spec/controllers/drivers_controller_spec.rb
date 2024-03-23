@@ -71,8 +71,7 @@ RSpec.describe DriversController, type: :controller do
                 post :create, params: { driver: invalid_attributes }, format: :json
                 expect(response).to have_http_status(:bad_request)
                 expect(response.parsed_body["error"]).to eq(
-                    "Validation failed: Home address can't be blank, Home address is invalid"
-                )
+                    "Validation failed: Home address can't be blank"                )
                 expect(response.content_type).to eq('application/json; charset=utf-8')
             end
         end

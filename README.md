@@ -1,4 +1,7 @@
 # README
+Notes:
+- Known issues:
+    -- Cache is not expiring as expected, but it seemed like a fiddly issue to spend time on here.  If this was a real feature going to production I would ensure that the cache is expiring correctly, but I hope you will accept that since I have limited free time in my week and this is just a demonstration of skill and not a real product, that my time is better served by calling this issue a "I would fix if I had more time".
 
 * Ruby version
 
@@ -44,7 +47,7 @@ curl -v \
   -H "Accept: application/json" \
   -H "Content-type: application/json" \
   -X POST \
-  -d '{"ride":{"destination_address":"8.682301,49.420658","start_address":"8.643600,49.41401"}}' \
+  -d '{"ride":{"destination_address":"430 SE 192nd Ave, Vancouver, WA 98683","start_address":"16200 SE Mill Plain Blvd, Vancouver, WA 98684"}}' \
   http://localhost:3000/rides
 
 curl -v \

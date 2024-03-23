@@ -16,6 +16,10 @@ class DriversController < ApplicationController
     def create
         begin
             @driver = Driver.create!(driver_params)
+
+            # Enqueue Sidekiq job to fetch ride coords
+            FetchAddressCoordsWorker.perform_async("Driver", @driver.id)
+
             render json: @driver, status: :created, location: @driver
         rescue => e
             render json: { error: e.message }, status: :bad_request

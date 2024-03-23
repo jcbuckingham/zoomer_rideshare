@@ -48,9 +48,8 @@ RSpec.describe OpenrouteserviceClient do
                 'resolve_locations': false,
                 'units': 'mi'
             }
-
             expect(HTTParty).to receive(:post).with(
-                ENV["OPENROUTESERVICE_MATRIX_ENDPOINT"],
+                "#{ENV["OPENROUTESERVICE_ENDPOINT"]}/v2/matrix/driving-car",
                 body: expected_payload.to_json,
                 headers: { 
                     'Content-Type' => 'application/json', 
@@ -72,9 +71,67 @@ RSpec.describe OpenrouteserviceClient do
             allow(HTTParty).to receive(:post).and_raise(HTTParty::Error.new)
             rides = Ride.order(id: :desc)
           
-            expect(Rails.logger).to receive(:warn).with(/Error fetching route duration:/)
+            expect(Rails.logger).to receive(:error).with(/Error fetching route durations and distances/)
             
             expect { client.get_matrix_data(driver, rides) }.to raise_error(HTTParty::Error)
+        end
+    end
+
+    describe '#convert_address_to_coords' do
+        let(:client) { described_class.new }
+        let(:address) { '1600 Amphitheatre Parkway, Mountain View, CA' }
+        let(:latitude) { 37.4224082 }
+        let(:longitude) { -122.0856086 }
+        let(:response_body) do
+        {
+            "features" => [
+            {
+                "geometry" => {
+                "coordinates" => [longitude, latitude]
+                }
+            }
+            ]
+        }.to_json
+        end
+
+        context 'when the address is valid' do
+            before do
+                allow(HTTParty).to receive(:get).and_return(double(body: response_body))
+            end
+
+            it 'returns the coordinates' do
+                expect(client.convert_address_to_coords(address)).to eq("#{latitude},#{longitude}")
+            end
+        end
+
+        context 'when the address is invalid' do
+            before do
+                allow(HTTParty).to receive(:get).and_return(double(body: { "features" => [] }.to_json))
+            end
+
+            it 'raises an InvalidAddressError' do
+                expect { client.convert_address_to_coords(address) }.to raise_error(InvalidAddressError)
+            end
+        end
+
+        context 'when an HTTP error occurs' do
+            before do
+                allow(HTTParty).to receive(:get).and_raise(HTTParty::Error, 'HTTP error')
+            end
+
+            it 'raises the error' do
+                expect { client.convert_address_to_coords(address) }.to raise_error(HTTParty::Error, 'HTTP error')
+            end
+        end
+
+        context 'when a JSON parsing error occurs' do
+            before do
+                allow(HTTParty).to receive(:get).and_return(double(body: 'invalid json'))
+            end
+
+            it 'raises the error' do
+                expect { client.convert_address_to_coords(address) }.to raise_error(JSON::ParserError)
+            end
         end
     end
 end

@@ -1,12 +1,15 @@
 require 'httparty'
 require 'json'
 
+class InvalidAddressError < StandardError
+end
+
 # TODO: raise errors instead of returning nil
 class OpenrouteserviceClient
     def initialize
         @api_key = ENV['OPENROUTESERVICE_API_KEY']
         Rails.logger.info("api_key: #{@api_key}")
-        @matrix_endpoint = ENV['OPENROUTESERVICE_MATRIX_ENDPOINT']
+        @endpoint = ENV['OPENROUTESERVICE_ENDPOINT']
     end
 
     def get_matrix_data(driver, rides)
@@ -35,16 +38,32 @@ class OpenrouteserviceClient
         }
 
         response = HTTParty.post(
-            @matrix_endpoint,
+            "#{@endpoint}/v2/matrix/driving-car",
             body: request_payload.to_json,
             headers: headers
         )
 
         JSON.parse(response.body)
     rescue HTTParty::Error, JSON::ParserError => e
-        # Handle API errors
-        Rails.logger.warn("Error fetching route duration: #{e}")
+        Rails.logger.error("Error fetching route durations and distances: #{e}")
         raise e
     end
 
+    def convert_address_to_coords(address)
+        url = "#{@endpoint}/geocode/search?api_key=#{@api_key}&text=#{CGI.escape(address)}"
+        response = HTTParty.get(url)
+        data = JSON.parse(response.body)
+
+        if data['features'] && !data['features'].empty?
+            coordinates = data['features'][0]['geometry']['coordinates']
+            latitude = coordinates[1]
+            longitude = coordinates[0]
+            return "#{latitude},#{longitude}"
+        else
+            raise InvalidAddressError
+        end
+    rescue HTTParty::Error, JSON::ParserError => e
+        Rails.logger.warn("Error converting address to coords: #{e}")
+        raise e
+    end
 end

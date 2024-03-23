@@ -28,8 +28,8 @@ class RidesController < ApplicationController
             return
         end
 
-        # Cache the paginated response
-        Rails.cache.write(cache_key, rides)
+        # Cache the paginated response and expire it in 5 minutes so the driver can see new rides without much delay
+        Rails.cache.write(cache_key, rides, expires_in: 1.minutes)
 
         # Paginate the cached rides and return the paginated response
         paginated_rides = paginate_cached_rides(rides)
@@ -68,8 +68,8 @@ class RidesController < ApplicationController
             return
         end
 
-        # Enqueue Sidekiq job to fetch ride data
-        FetchRouteDurationWorker.perform_async(@ride.id)
+        # Enqueue Sidekiq job to fetch ride coords
+        FetchAddressCoordsWorker.perform_async("Ride", @ride.id)
 
         render json: @ride, status: :created, location: @ride
     end
