@@ -15,10 +15,10 @@ RSpec.describe RidesController, type: :controller do
     }
 
     let(:driver) { Driver.create!(home_address: '8.681495,49.41461') }
-    let!(:ride1) { Ride.create!(start_address: '8.6816,49.41401', destination_address: '8.682301,49.414658') }
-    let!(:ride2) { Ride.create!(start_address: '8.68171,49.41401', destination_address: '8.692301,49.414658') }
-    let!(:ride3) { Ride.create!(start_address: '8.6825,49.41401', destination_address: '8.682311,49.414658') }
-    let!(:ride4) { Ride.create!(start_address: '8.6815,49.41401', destination_address: '8.692321,49.41461') }
+    let!(:ride1) { Ride.create!(start_address: '8.6825,49.41401', destination_address: '8.682311,49.414658') }
+    let!(:ride2) { Ride.create!(start_address: '8.6815,49.41401', destination_address: '8.692321,49.41461') }
+    let!(:ride3) { Ride.create!(start_address: '8.6816,49.41401', destination_address: '8.682301,49.414658') }
+    let!(:ride4) { Ride.create!(start_address: '8.68171,49.41401', destination_address: '8.692301,49.414658') }
 
     describe "GET #show" do
         it "returns a success response" do
@@ -84,20 +84,20 @@ RSpec.describe RidesController, type: :controller do
             expected_response = {
                 "page" => 1,
                 "per_page" => 10,
-                "rides" => [ride3.as_json, ride4.as_json, ride2.as_json, ride1.as_json],
+                "rides" => [ride2.as_json, ride1.as_json, ride3.as_json, ride4.as_json],
                 "total_rides" => 4
             }
 
             expect(JSON.parse(response.body)).to eq(expected_response)
         end
 
-        it 'is pagination' do
+        it 'is paginated' do
             # Define different page and per_page values
             page = 2
             per_page = 2
             
             # Calculate the expected rides for the specified page and per_page
-            expected_rides = [ride2.as_json, ride1.as_json]
+            expected_rides = [ride3.as_json, ride4.as_json]
             
             # Calculate the total number of rides (for total_rides field)
             total_rides = Ride.count
@@ -118,7 +118,23 @@ RSpec.describe RidesController, type: :controller do
           
             # Check if the response body matches the expected response
             expect(JSON.parse(response.body)).to eq(expected_response)
-          end
+        end
+
+        context "with cached driver data" do
+            let(:cached_ride_ids) { Ride.order(id: :desc).pluck(:id) }
+
+            before do
+                allow(Rails.cache).to receive(:read).with("rides_for_driver_#{driver.id}").and_return(cached_ride_ids)
+            end
+
+            it 'returns cached rides' do
+                get :index, params: { driver_id: driver.id, page: 1, per_page: 3 }
+                expect(response).to have_http_status(:success)
+                expect(JSON.parse(response.body)['rides'].count).to eq(3)
+                expect(JSON.parse(response.body)['rides']).to eq([ride4.as_json, ride3.as_json, ride2.as_json])
+                expect(Rails.cache).to have_received(:read).with("rides_for_driver_#{driver.id}")
+            end
+        end
     end
 
     describe "RouteDataConcern" do
