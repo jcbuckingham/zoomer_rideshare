@@ -24,6 +24,7 @@ class RidesController < ApplicationController
             rides = fetch_ride_data(@driver, @rides)
             ride_ids = rides.map(&:id)
         rescue => e
+            puts e
             Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
             render json: { error: "Openrouteservice error - #{e.message}" }, status: :service_unavailable
             return

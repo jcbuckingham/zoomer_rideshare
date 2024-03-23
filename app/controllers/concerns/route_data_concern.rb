@@ -39,7 +39,7 @@ module RouteDataConcern
     # The result received from Openrouteservice's matrix endpoint gives all the durations
     # required in one API call, so it severely cuts down on network calls, but we need to 
     # traverse the matrix programatically in order to discover the relevant data for the driver's
-    # commute to each ride and the duration from the ride's start_address to its destination_address.
+    # commute to each ride and the duration from the ride's start_coords to its destination_coords.
     #
     # The logic is as follows:
     def process_matrix_route_data(durations, distances, rides)
@@ -48,35 +48,35 @@ module RouteDataConcern
 
         # As stated in OpenrouteserviceClient.get_matrix_data(), the first element in the 
         # durations array from Openrouteservice is an array of the durations from the driver's 
-        # home_address to all rides' start_addresses.
-        driver_to_start_address_durations = durations[0]
-        driver_to_start_address_distances = distances[0]
+        # home_coords to all rides' start_coordses.
+        driver_to_start_coords_durations = durations[0]
+        driver_to_start_coords_distances = distances[0]
       
         # Creates a separate index for iterating through the rides records
         # TODO: enumerable?
         ride_index = 0
 
-        # The rest of the elements in durations are in pairs, first a ride's start_address to all 
-        # other addresses, and then a ride's destination_address to all other addresses.  For our 
-        # purposes, we only care about the commute duration (driver's home_address to ride's start_address)
-        # and the ride duration (ride's start_address to its destination_address), so most of the 
+        # The rest of the elements in durations are in pairs, first a ride's start_coords to all 
+        # other addresses, and then a ride's destination_coords to all other addresses.  For our 
+        # purposes, we only care about the commute duration (driver's home_coords to ride's start_coords)
+        # and the ride duration (ride's start_coords to its destination_coords), so most of the 
         # matrix data is ignored.
 
         durations.zip(distances).each_with_index do |ride_data, i|
-            # Skip the data on even elements because they are durations FROM destination_addresses
-            # and skip the data on the first element because it is the driver's home_address which we 
+            # Skip the data on even elements because they are durations FROM destination_coordses
+            # and skip the data on the first element because it is the driver's home_coords which we 
             # already captured.
             next if i.even? || i.zero?
         
-            # For each set of ride start_address durations, find the corresponding commute duration
-            # from the driver's home_address array and find the ride duration to the destination.
+            # For each set of ride start_coords durations, find the corresponding commute duration
+            # from the driver's home_coords array and find the ride duration to the destination.
             # ride_data = {
-            #     commute: driver_to_start_address_durations[i],
+            #     commute: driver_to_start_coords_durations[i],
             #     ride: ride_data.first[i + 1]
             # }
             route_info = RouteInfo.new(
-                commute_distance: driver_to_start_address_distances[i],
-                commute_duration: driver_to_start_address_durations[i],
+                commute_distance: driver_to_start_coords_distances[i],
+                commute_duration: driver_to_start_coords_durations[i],
                 ride_distance: ride_data.last[i + 1],
                 ride_duration: ride_data.first[i + 1],
                 ride: rides[ride_index]
@@ -95,7 +95,7 @@ module RouteDataConcern
     # The result received from Openrouteservice's matrix endpoint gives all the durations
     # required in one API call, so it severely cuts down on network calls, but we need to 
     # traverse the matrix programatically in order to discover the durations for the driver's
-    # commute to each ride and the duration from the ride's start_address to its destination_address.
+    # commute to each ride and the duration from the ride's start_coords to its destination_coords.
     #
     # The logic is as follows:
     def process_matrix_durations(durations)
@@ -104,24 +104,24 @@ module RouteDataConcern
 
         # As stated in OpenrouteserviceClient.get_matrix_data(), the first element in the 
         # durations array from Openrouteservice is an array of the durations from the driver's 
-        # home_address to all rides' start_addresses.
-        driver_to_start_address_durations = durations[0]
+        # home_coords to all rides' start_coordses.
+        driver_to_start_coords_durations = durations[0]
       
-        # The rest of the elements in durations are in pairs, first a ride's start_address to all 
-        # other addresses, and then a ride's destination_address to all other addresses.  For our 
-        # purposes, we only care about the commute duration (driver's home_address to ride's start_address)
-        # and the ride duration (ride's start_address to its destination_address), so most of the 
+        # The rest of the elements in durations are in pairs, first a ride's start_coords to all 
+        # other addresses, and then a ride's destination_coords to all other addresses.  For our 
+        # purposes, we only care about the commute duration (driver's home_coords to ride's start_coords)
+        # and the ride duration (ride's start_coords to its destination_coords), so most of the 
         # matrix data is ignored.
         durations.each_with_index do |ride_durations, ride_distances, i|
-            # Skip the data on even elements because they are durations FROM destination_addresses
-            # and skip the data on the first element because it is the driver's home_address which we 
+            # Skip the data on even elements because they are durations FROM destination_coordses
+            # and skip the data on the first element because it is the driver's home_coords which we 
             # already captured.
             next if i.even? || i.zero?
         
-            # For each set of ride start_address durations, find the corresponding commute duration
-            # from the driver's home_address array and find the ride duration to the destination.
+            # For each set of ride start_coords durations, find the corresponding commute duration
+            # from the driver's home_coords array and find the ride duration to the destination.
             ride_data = {
-                commute: driver_to_start_address_durations[i],
+                commute: driver_to_start_coords_durations[i],
                 ride: ride_durations[i + 1]
             }
             # Append the data to result

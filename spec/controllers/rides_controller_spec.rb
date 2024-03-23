@@ -7,18 +7,46 @@ RSpec.describe RidesController, type: :controller do
     end
 
     let(:valid_attributes) {
-        { start_address: '8.681495,49.41461', destination_address: '8.687872,49.420318' }
+        { start_address: '10 43rd Ave, Queens, NY 11101', destination_address: '25 40th Ave, Queens, NY 11101' }
     }
 
     let(:invalid_attributes) {
         { foo: "bar" }
     }
 
-    let(:driver) { Driver.create!(home_address: '8.681495,49.41461') }
-    let!(:ride1) { Ride.create!(start_address: '8.6825,49.41401', destination_address: '8.682311,49.414658') }
-    let!(:ride2) { Ride.create!(start_address: '8.6815,49.41401', destination_address: '8.692321,49.41461') }
-    let!(:ride3) { Ride.create!(start_address: '8.6816,49.41401', destination_address: '8.682301,49.414658') }
-    let!(:ride4) { Ride.create!(start_address: '8.68171,49.41401', destination_address: '8.692301,49.414658') }
+    let(:driver) { Driver.create!(home_address: '46 11th St, Queens, NY 11101', home_coords: '8.681495,49.41461') }
+    let!(:ride1) do 
+        Ride.create!(
+            start_address: '10 43rd Ave, Queens, NY 11101', 
+            destination_address: '25 40th Ave, Queens, NY 11101',
+            start_coords: '8.6825,49.41401', 
+            destination_coords: '8.682311,49.414658'
+        )
+    end
+    let!(:ride2) do 
+        Ride.create!(
+            start_address: '30 23rd St, Queens, NY 11101', 
+            destination_address: '4236 Crescent St, Queens, NY 11101',
+            start_coords: '8.6815,49.41401', 
+            destination_coords: '8.692321,49.41461'
+        )
+    end
+    let!(:ride3) do
+        Ride.create!(
+            start_address: '965 1st Ave., New York, NY 10022', 
+            destination_address: '36-01 35th Ave, Queens, NY 11106',
+            start_coords: '8.6816,49.41401', 
+            destination_coords: '8.682301,49.414658'
+        )
+    end
+    let!(:ride4) do
+        Ride.create!(
+            start_address: '965 1st Ave., New York, NY 10022', 
+            destination_address: '10 41st Ave, Queens, NY 11101',
+            start_coords: '8.68171,49.41401', 
+            destination_coords: '8.692301,49.414658'
+        )
+    end
 
     describe "GET #show" do
         it "returns a success response" do

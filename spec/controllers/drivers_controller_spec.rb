@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe DriversController, type: :controller do
     # TODO: factorybot
     let(:valid_attributes) {
-        { home_address: '8.681301,49.43461' }
+        { home_address: '46 11th St, Queens, NY 11101' }
     }
 
     let(:invalid_attributes) {
@@ -11,7 +11,7 @@ RSpec.describe DriversController, type: :controller do
     }
 
     let(:valid_ride_attributes) {
-        { start_address: '8.681495,49.41461', destination_address: '8.687872,49.420318' }
+        { start_address: '10 43rd Ave, Queens, NY 11101', destination_address: '25-03 40th Ave, Queens, NY 11101' }
     }
 
     describe "GET #index" do

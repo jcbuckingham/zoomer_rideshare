@@ -19,9 +19,23 @@ RSpec.describe OpenrouteserviceClient do
     end
 
     describe '#get_matrix_data' do
-        let(:driver) { Driver.create!(home_address: '8.681495,49.41461') }
-        let!(:ride1) { Ride.create!(start_address: '8.6436,49.41401', destination_address: '8.682301,49.420658') }
-        let!(:ride2) { Ride.create!(start_address: '8.6936,49.41401', destination_address: '8.692301,49.420658') }
+        let(:driver) { Driver.create!(home_address: '10 43rd Ave, Queens, NY 11101', home_coords: '8.681495,49.41461') }
+        let!(:ride1) do 
+            Ride.create!(
+                start_address: '30 23rd St, Queens, NY 11101', 
+                destination_address: '4236 Crescent St, Queens, NY 11101',
+                start_coords: '8.6436,49.41401', 
+                destination_coords: '8.682301,49.420658'
+            )
+        end
+        let!(:ride2) do
+            Ride.create!(
+                start_address: '965 1st Ave., New York, NY 10022', 
+                destination_address: '10 41st Ave, Queens, NY 11101', 
+                start_coords: '8.6936,49.41401', 
+                destination_coords: '8.692301,49.420658'
+            )
+        end
 
         it 'returns the matrix data' do
             rides = Ride.order(id: :desc)
@@ -38,11 +52,11 @@ RSpec.describe OpenrouteserviceClient do
             # expect rides in desc order by id
             expected_payload = {
                 'locations' => [
-                    [8.681495, 49.41461],  # driver.home_address
-                    [8.6936, 49.41401],    # ride2.start_address
-                    [8.692301, 49.420658], # ride2.destination_address
-                    [8.6436, 49.41401],    # ride1.start_address
-                    [8.682301, 49.420658]  # ride1.destination_address
+                    [8.681495, 49.41461],  # driver.home_coords
+                    [8.6936, 49.41401],    # ride2.start_coords
+                    [8.692301, 49.420658], # ride2.destination_coords
+                    [8.6436, 49.41401],    # ride1.start_coords
+                    [8.682301, 49.420658]  # ride1.destination_coords
                 ],
                 'metrics' => ['duration', 'distance'],
                 'resolve_locations': false,

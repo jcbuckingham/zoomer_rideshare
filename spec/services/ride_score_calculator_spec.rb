@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe RideScoreCalculator do
     describe '#calculate_score' do
-        let(:ride1) { Ride.create!(start_address: '8.6436,49.41401', destination_address: '8.682301,49.420658') }
-        let(:ride2) { Ride.create!(start_address: '8.6936,49.41401', destination_address: '8.692301,49.420658') }
+        let(:ride1) { Ride.create!(start_address: '10 43rd Ave, Queens, NY 11101', destination_address: '25-03 40th Ave, Queens, NY 11101') }
+        let(:ride2) { Ride.create!(start_address: '965 1st Ave., New York, NY 10022', destination_address: '10 41st Ave, Queens, NY 11101') }
         let(:route_info1) do
             RouteDataConcern::RouteInfo.new(
                 commute_distance: 10,

@@ -13,15 +13,15 @@ class OpenrouteserviceClient
     end
 
     def get_matrix_data(driver, rides)
-        # The first location in the set will be the driver's home_address
-        location_pairs = [driver.home_address.split(",").map(&:to_f)]
+        # The first location in the set will be the driver's home_coords
+        location_pairs = [driver.home_coords.split(",").map(&:to_f)]
 
-        # Then locations are added in pairs: the ride's start_address and destination_address
+        # Then locations are added in pairs: the ride's start_coords and destination_coords
         # The durations will be returned in the same order, so to process the result, we will also
         # rely on these pairings.
         rides.each do |ride|
-            location_pairs << ride.start_address.split(",").map(&:to_f)
-            location_pairs << ride.destination_address.split(",").map(&:to_f)
+            location_pairs << ride.start_coords.split(",").map(&:to_f)
+            location_pairs << ride.destination_coords.split(",").map(&:to_f)
         end
 
         request_payload = {

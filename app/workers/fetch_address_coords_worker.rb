@@ -6,7 +6,7 @@ class FetchAddressCoordsWorker
 
         if obj_class == "Ride"
             ride = Ride.find(obj_id)
-            start_coords = client.convert_address_to_coords(ride.start_address)
+            start_coords = client.convert_address_to_coords(ride.start_coords)
             destination_coords = client.convert_address_to_coords(ride.destination_address)
 
             ride.start_coords = start_coords
@@ -14,9 +14,9 @@ class FetchAddressCoordsWorker
             ride.save!
         else
             driver = Driver.find(obj_id)
-            driver_coords = client.convert_address_to_coords(driver.home_address)
+            driver_home_coords = client.convert_address_to_coords(driver.home_address)
 
-            driver.coords = driver_coords
+            driver.home_coords = driver_home_coords
             driver.save!
         end
     rescue HTTParty::Error, JSON::ParserError => e

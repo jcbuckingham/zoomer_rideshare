@@ -54,7 +54,7 @@ curl -v \
   -H "Accept: application/json" \
   -H "Content-type: application/json" \
   -X POST \
-  -d '{"driver":{"home_address":"8.685072,49.421518"}}' \
+  -d '{"driver":{"home_address":"965 1st Ave., New York, NY 10022"}}' \
   http://localhost:3000/drivers
 
   curl -X POST -H "Content-Type: application/json" -H 'Authorization: 5b3ce3597851110001cf6248f34895a0bde54f7a981a91c84076381e' -d '{"locations":[[8.681495,49.41461],[8.6816,49.41401],[8.682301,49.414658],[8.68171,49.41401],[8.692301,49.414658],[8.6825,49.41401],[8.682311,49.414658],[8.6815,49.41464],[8.6814,49.41461]],"metrics":["duration", "distance"],"resolve_locations":"false","units":"mi"}' https://api.openrouteservice.org/v2/matrix/driving-car
