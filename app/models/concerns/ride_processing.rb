@@ -8,6 +8,9 @@ module RideProcessing
             # terrible practice.  With more time I would introduce fields to filter Rides on and also process records in batches and store 
             # the score results in the cache as I went since I have a mechanism to return paginated results from the cache already.
             rides = Ride.all
+
+            # if there are no Rides, skip processing and caching
+            return [] if rides.empty?
     
             driver_rides = fetch_ride_data(driver, rides)
             ranked_rides = calculate_and_rank_scores(driver_rides)

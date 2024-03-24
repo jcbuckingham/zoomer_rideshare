@@ -13,6 +13,6 @@ class Ride < ApplicationRecord
     
         update!(start_coords: start_coords, destination_coords: destination_coords)
     rescue StandardError => e
-        raise "Error saving driver coordinates for driver_id=#{id}: #{e.message}"
+        raise "Error saving ride coordinates for ride_id=#{id}"
     end
 end

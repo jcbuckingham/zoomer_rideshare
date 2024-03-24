@@ -171,5 +171,22 @@ RSpec.describe RidesController, type: :controller do
                 )
             end
         end
+
+        context "when there are no rides" do
+            before { Ride.destroy_all }
+            
+            it "returns an empty array of rides" do
+                get :index, params: { driver_id: driver.id }
+                expect(response).to have_http_status(:success)
+                expected_response = {
+                    "page" => 1,
+                    "per_page" => 10,
+                    "rides" => [],
+                    "total_rides" => 0
+                }
+
+                expect(JSON.parse(response.body)).to eq(expected_response)
+            end
+        end
     end
 end
