@@ -96,15 +96,15 @@ RSpec.describe OpenrouteserviceClient do
         let(:latitude) { 37.4224082 }
         let(:longitude) { -122.0856086 }
         let(:response_body) do
-        {
-            "features" => [
             {
-                "geometry" => {
-                "coordinates" => [longitude, latitude]
+                "features" => [
+                {
+                    "geometry" => {
+                    "coordinates" => [longitude, latitude]
+                    }
                 }
-            }
-            ]
-        }.to_json
+                ]
+            }.to_json
         end
 
         context 'when the address is valid' do

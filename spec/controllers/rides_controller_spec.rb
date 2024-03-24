@@ -61,6 +61,7 @@ RSpec.describe RidesController, type: :controller do
     end
 
     describe "POST #create" do
+        before { allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_return("12.345,67.890") }
         context "with valid params" do
             it "creates a new Ride" do
                 expect {

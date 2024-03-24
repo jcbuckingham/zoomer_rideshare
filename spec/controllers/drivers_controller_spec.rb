@@ -32,6 +32,8 @@ RSpec.describe DriversController, type: :controller do
 
     describe "POST #create" do
         context "with valid params" do
+            before { allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_return("12.345,67.890") }
+            
             it "creates a new Driver" do
                 expect {
                     post :create, params: { driver: valid_attributes }, format: :json

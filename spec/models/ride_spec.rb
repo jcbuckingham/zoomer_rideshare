@@ -35,6 +35,24 @@ RSpec.describe Ride, type: :model do
         )
     end
 
+    describe "fetch_and_save_coords!" do
+        let!(:new_ride) do
+            Ride.create!(
+                start_address: '965 1st Ave., New York, NY 10022', 
+                destination_address: '10 41st Ave, Queens, NY 11101',
+            )
+        end
+
+        it 'saves the fetched coords' do
+            allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_return("12.345,67.890")
+            new_ride.fetch_and_save_coords!
+
+            new_ride.reload
+            expect(new_ride.start_coords).to eq("12.345,67.890")
+            expect(new_ride.destination_coords).to eq("12.345,67.890")
+        end
+    end
+
     describe "process_matrix_route_data" do
         it "fetches and processes all ride data from Openrouteservice" do
             data = JSON.parse(File.read('spec/fixtures/matrix_response.json'))

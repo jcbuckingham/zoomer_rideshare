@@ -6,26 +6,37 @@
 
 I took advantage of the ability to fetch matrix data from the Openrouteservice API for all-locations-to-all-locations data. This required careful processing of the matrix data, but that extra complexity bought a significant decrease in API calls and network IO. There is only one Openrouteservice API call per request on the `GET /rides` endpoint, and only if there is a cache miss.
 
-Also, since the Rails Assessment doc stated the driver and rides have addresses, not coords which are required for fetching matrix data, my implementation takes in a street address on creation of these records via API (`POST /drivers` and `POST /rides`). When these records have been created, a background job is started to fetch the coordinates from Openrouteservice, so there is an additional call per object creation. 
+Also, since the Rails Assessment doc stated the driver and rides have addresses, not coords which are required for fetching matrix data, my implementation accepts a street address on creation via API (`POST /drivers` and `POST /rides`). When these records have been created, the coordinates are fetched from Openrouteservice, so there is an additional call per Driver creation, and 2 per Ride creation. 
 
-The downside of this approach is that if the job fails, the record will not have its coords set and cannot be used in the `GET /rides` API.  Handling this is outside of scope, so I simply log when this happens and skip those records.
+Since the Driver and Ride creation controllers are fully synchronous and include calls to Openrouteservice, the response is slow.  I didn't optimize for performance here, but the Openrouteservice calls could be done asynchronously.
 
 ### Including the driver_id
 
-For the Ride API, I decided to include the driver_id as a GET parameter for a number of reasons, 
-although it's not a perfect solution. The rides are not associated to a driver, so nesting drivers/:driver_id/rides doesn't seem appropriate, and this would likely be used for rides that the driver has selected (outside the scope of this project).  Ideally, the driver would be logged in and we could use :current_user to determine the driver, but since auth was also out of scope, I went with the GET param as a compromise between the two. 
+For the Ride API, I decided to include the driver_id as a GET parameter for a number of reasons, although it's not a perfect solution. The Rides are not associated to a Driver, so nesting drivers/:driver_id/rides doesn't seem appropriate, and this would likely be used for rides that the driver has agreed to drive (outside the scope of this project).  Ideally, the driver would be logged in and we could use :current_user or similar, but since auth was also out of scope, I went with the GET param as a compromise between the two. 
 
 ### Pagination and caching
 
 Pagination has two paths: cache hits and cache misses
 
-For cache misses, all Rides are scored and sorted by score in descending order, and then the correct number of records are selected at the correct offset. They are returned along with other pagination fields.  This is fairly traditional pagination except that we can't query the database for the offset of records since they aren't scored yet.  After we know the Ride scores for a driver, the Ride ids are saved to the cache in sorted order (by score, descending) by driver_id.
+For cache misses, all Rides are scored and sorted by score in descending order, and then the correct number of records are selected at the correct offset. They are returned along with other pagination fields.  This is fairly traditional pagination except that we can't query the database for the offset of records since they aren't scored yet.  After we know the Ride scores for a driver, the Ride ids are saved to the cache in sorted order (by score, descending) to a key containing the driver_id.
 
-For cache hits, the driver has recently (in the last 5 minutes) fetched their a page of scored Ride records with the cache miss path.  This time, the API will fetch an array of Ride ids by driver.id in Redis that can be used to find the requested page of records with minimal time, space, and network complexity.  For page=1 per_page=5, we grab the first 5 Ride ids from the array and query for them in the database, sort them in order of the cached ids, and return them in the response.
+For cache hits, the driver has recently (in the last 5 minutes) fetched a page of scored Ride records with the cache miss path.  This time, the API will fetch an array of Ride ids in Redis by the driver's cache key. The array be used to find the requested page of records with minimal time, space, and network complexity.  For page=1 and per_page=5, we grab the first 5 Ride ids from the array and query for them in the database, sort them efficiently in order of the cached ids, and return them in the response.
 
 #### Important
 
-I chose a 5 minute cache so the driver could generally experience quick page loads without waiting too long to see new records in their result.  If you use the API to make a new Ride record, remember this caching mechanism! Either use a new driver to get fresh data or wait until the cache expires.
+I chose a 5 minute cache so the driver could generally experience quick page loads without waiting too long to see new records in an API response.  If you use the API to create a new Ride record, remember this caching mechanism! Either use a new driver to get fresh data or wait until the cache expires.
+
+### Testing
+
+The pattern I have used here is to treat the controller specs as behavioral tests.  They only stub external network calls, so this gives happy-path and expected errors test coverage for the whole system accessible to by the API. 
+
+Then, I wrote unit tests for models and services where they were not robustly tested by the controller tests.
+
+#### Future improvements
+
+In a real scenario, I would also want an integration test for Openrouteservice to run in the different environments to ensure that system is healthy and we are accessing their API correctly.
+
+Performance tests would also be useful in a real scenario so I could test future optimizations, see how much faster the caching approach is than non-cached, and see improvements made with async behavior.
 
 # Ride API
 
@@ -35,11 +46,11 @@ This API provides endpoints to manage rides.
 
 ### GET /rides
 
-Retrieves rides for a specific driver.
+Retrieves rides for a specific driver, ordered based on the ride's score for this driver.
 
 #### Parameters
 
-- `driver_id`: REQUIRED. The ID of the driver for whom to retrieve rides.
+- `driver_id`: REQUIRED. The ID of the driver to retrieve and score rides for.
 
 #### Pagination
 
@@ -51,7 +62,7 @@ Pagination is implemented using query parameters `page` and `per_page`.  The res
 #### Response
 
 - `200 OK`: Returns paginated rides for the specified driver.
-- `400 Bad Request`: Returned if `driver_id` parameter is missing.
+- `400 Bad Request`: Returned if `driver_id` parameter is missing or if the driver does not have set coords. For the second case, create a different driver and ensure the home_address is valid.
 - `404 Not Found`: Returned if the driver with the specified ID is not found.
 - `503 Service Unavailable`: Returned if there is an issue fetching ride information.
 - `500 Internal Server Error`: Returned if an unexpected error occurs.
@@ -149,19 +160,16 @@ Deletes a specific driver.
 
 Not implemented in this API.
 
-## Deployment
 
-This API can be deployed to any platform that supports Ruby on Rails applications.
+# Local Deployment
 
-## Development
+This API can be deployed to any platform that supports Ruby on Rails applications. To run the API locally:
 
-To run the API locally:
-
-1. Install dependencies:
+### 1. Install dependencies:
 
 - Use rvm or similar tool to ensure your terminal is running ruby-3.3.0
 
-- `bundle install`
+- `bundle install` 
 
 - `rails db:create`
 
@@ -169,25 +177,21 @@ To run the API locally:
 
 - `brew install redis`  (This works for MacOS.  If you are using another OS, lookup the correct way to install redis on your system if it is not installed.)
 
-- `gem install sidekiq`
+- `gem install foreman`
 
-- copy `.sample_env` to a file called `.env` and replace `your-api-key` with a real key from Openrouteservice
+- copy `.sample_env` to a file called `.env` and replace `your-api-key` with a real api key from Openrouteservice
 
-2. Run specs:
+### 2. Run specs:
 
 - `rspec`
 
-3. Run the server:
+### 3. Run the server:
 
-- `brew services start redis` OR `docker-compose up`
+- `foreman start`
 
-- `bundle exec sidekiq`
+### 4. The API will be accessible at `http://localhost:3000`
 
-- `bin/rails server`
-
-4. The API will be accessible at `http://localhost:3000`
-
-### Known issues:
+## Known issues:
     If an error is encountered for Redis similar to:
     "ERROR: heartbeat: MISCONF Redis is configured to save RDB snapshots, but 
     it's currently unable to persist to disk. Commands that may modify the data 

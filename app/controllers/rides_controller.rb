@@ -45,8 +45,15 @@ class RidesController < ApplicationController
             return
         end
 
-        # Enqueue Sidekiq job to fetch ride coords offline
-        FetchAddressCoordsWorker.perform_async("Ride", @ride.id)
+        begin
+            @ride.fetch_and_save_coords!
+        rescue InvalidAddressError
+            render json: { error: "Address is invalid" }, status: :bad_request
+            return
+        rescue HTTParty::Error, JSON::ParserError => e
+            render json: { error: "Address conversion error.", status: :service_unavailable }
+            return
+        end
 
         render json: @ride, status: :created, location: @ride
     end

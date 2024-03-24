@@ -14,14 +14,22 @@ class DriversController < ApplicationController
     def create
         begin
             @driver = Driver.create!(driver_params)
-
-            # Enqueue Sidekiq job to fetch ride coords
-            FetchAddressCoordsWorker.perform_async("Driver", @driver.id)
-
-            render json: @driver, status: :created, location: @driver
         rescue => e
             render json: { error: e.message }, status: :bad_request
+            return
         end
+
+        begin
+            @driver.fetch_and_save_coords!
+        rescue InvalidAddressError
+            render json: { error: "Address is invalid" }, status: :bad_request
+            return
+        rescue HTTParty::Error, JSON::ParserError => e
+            render json: { error: "Address conversion error.", status: :service_unavailable }
+            return
+        end
+
+        render json: @driver, status: :created, location: @driver
     end
 
     # DELETE /drivers/:id
