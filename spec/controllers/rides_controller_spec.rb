@@ -61,8 +61,9 @@ RSpec.describe RidesController, type: :controller do
     end
 
     describe "POST #create" do
-        before { allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_return("12.345,67.890") }
         context "with valid params" do
+            before { allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_return("12.345,67.890") }
+
             it "creates a new Ride" do
                 expect {
                     post :create, params: { ride: valid_attributes }, format: :json
@@ -82,6 +83,30 @@ RSpec.describe RidesController, type: :controller do
                 expect(response).to have_http_status(:bad_request)
                 expect(response.parsed_body["error"]).to eq(
                     "Validation failed: Start address can't be blank, Destination address can't be blank"
+                )
+                expect(response.content_type).to eq('application/json; charset=utf-8')
+            end
+        end
+
+        context "with invalid address" do
+            it "renders a JSON response with correct error" do
+                allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_raise(InvalidAddressError)
+    
+                post :create, params: { ride: valid_attributes }, format: :json
+
+                expect(response).to have_http_status(:bad_request)
+                expect(response.parsed_body["error"]).to eq("Address is invalid.")
+                expect(response.content_type).to eq('application/json; charset=utf-8')
+            end
+        end
+
+        context "with HTTParty error" do
+            it "renders a JSON response with correct error" do
+                allow(HTTParty).to receive(:get).and_raise(HTTParty::Error)
+                post :create, params: { ride: valid_attributes }, format: :json
+                expect(response).to have_http_status(:service_unavailable)
+                expect(response.parsed_body["error"]).to eq(
+                    "Address conversion error."
                 )
                 expect(response.content_type).to eq('application/json; charset=utf-8')
             end

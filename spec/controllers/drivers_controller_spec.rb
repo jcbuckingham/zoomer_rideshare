@@ -56,6 +56,30 @@ RSpec.describe DriversController, type: :controller do
                 expect(response.content_type).to eq('application/json; charset=utf-8')
             end
         end
+
+        context "with invalid address" do
+            it "renders a JSON response with correct error" do
+                allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_raise(InvalidAddressError)
+    
+                post :create, params: { driver: valid_attributes }, format: :json
+
+                expect(response).to have_http_status(:bad_request)
+                expect(response.parsed_body["error"]).to eq("Address is invalid.")
+                expect(response.content_type).to eq('application/json; charset=utf-8')
+            end
+        end
+
+        context "with HTTParty error" do
+            it "renders a JSON response with correct error" do
+                allow(HTTParty).to receive(:get).and_raise(HTTParty::Error)
+                post :create, params: { driver: valid_attributes }, format: :json
+                expect(response).to have_http_status(:service_unavailable)
+                expect(response.parsed_body["error"]).to eq(
+                    "Address conversion error."
+                )
+                expect(response.content_type).to eq('application/json; charset=utf-8')
+            end
+        end
     end
 
     describe "DELETE #destroy" do

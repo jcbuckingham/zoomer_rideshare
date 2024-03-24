@@ -82,7 +82,7 @@ Retrieves details of a specific ride.
 
 ### POST /rides
 
-Creates a new ride.
+Creates a new ride.  This endpoint is slow due to synchronously creating the record and fetching coordinates from Openrouteservice.  Be patient when waiting for a response.
 
 #### Parameters
 
@@ -128,7 +128,7 @@ Retrieves details of a specific driver.
 
 ### POST /drivers
 
-Creates a new driver.
+Creates a new driver. This endpoint is slow due to synchronously creating the record and fetching coordinates from Openrouteservice.  Be patient when waiting for a response.
 
 #### Parameters
 

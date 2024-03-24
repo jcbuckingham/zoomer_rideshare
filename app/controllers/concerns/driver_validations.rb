@@ -12,6 +12,6 @@ module DriverValidations
             return { error_json: { error: "Driver's record is incomplete. Please use another driver_id." }, status: :bad_request }
         end
         
-        { driver: driver }
+        driver
     end
 end

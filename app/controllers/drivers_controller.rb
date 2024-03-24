@@ -22,10 +22,10 @@ class DriversController < ApplicationController
         begin
             @driver.fetch_and_save_coords!
         rescue InvalidAddressError
-            render json: { error: "Address is invalid" }, status: :bad_request
+            render json: { error: "Address is invalid." }, status: :bad_request
             return
         rescue HTTParty::Error, JSON::ParserError => e
-            render json: { error: "Address conversion error.", status: :service_unavailable }
+            render json: { error: "Address conversion error." }, status: :service_unavailable
             return
         end
 

@@ -3,22 +3,22 @@ class RidesController < ApplicationController
 
     # GET /rides?driver_id=:driver_id
     def index
-        # Driver validation hash: { driver: :driver, error_json: :error_json, status: :status }
+        # Driver validation hash: { error_json: :error_json, status: :status } or valid Driver object
         validation_result = DriverValidations.find_and_validate(params[:driver_id])
   
-        unless validation_result[:driver]
+        if validation_result.is_a?(Hash)
             render json: validation_result[:error_json], status: validation_result[:status]
             return
         end
 
         # Paginate the Rides and return the paginated response
         begin
-            response = PaginationService.get_paginated_rides_response(validation_result[:driver], params[:page], params[:per_page])
+            response = PaginationService.get_paginated_rides_response(validation_result, params[:page], params[:per_page])
         rescue HTTParty::Error, JSON::ParserError => e
-            render json: { error: "Ride information could not be fetched.", status: :service_unavailable }
+            render json: { error: "Ride information could not be fetched." }, status: :service_unavailable
             return
         rescue => e
-            render json: { error: "An unexpected error occurred: #{e.message}", status: :internal_server_error }
+            render json: { error: "An unexpected error occurred: #{e.message}" }, status: :internal_server_error
             return
         end
 
@@ -48,10 +48,10 @@ class RidesController < ApplicationController
         begin
             @ride.fetch_and_save_coords!
         rescue InvalidAddressError
-            render json: { error: "Address is invalid" }, status: :bad_request
+            render json: { error: "Address is invalid." }, status: :bad_request
             return
         rescue HTTParty::Error, JSON::ParserError => e
-            render json: { error: "Address conversion error.", status: :service_unavailable }
+            render json: { error: "Address conversion error." }, status: :service_unavailable
             return
         end
 

@@ -6,8 +6,8 @@ class Driver < ApplicationRecord
 
         home_coords = client.convert_address_to_coords(home_address)
 
-        update!(home_coords: home_coords)
-    rescue StandardError => e
+        update!(home_coords: home_coords) if home_coords
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
         raise "Error saving driver coordinates for driver_id=#{id}: #{e.message}"
     end
 end

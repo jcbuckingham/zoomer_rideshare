@@ -12,7 +12,7 @@ class Ride < ApplicationRecord
         destination_coords = client.convert_address_to_coords(destination_address)
     
         update!(start_coords: start_coords, destination_coords: destination_coords)
-    rescue StandardError => e
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
         raise "Error saving ride coordinates for ride_id=#{id}"
     end
 end
