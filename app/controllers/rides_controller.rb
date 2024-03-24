@@ -3,29 +3,17 @@ class RidesController < ApplicationController
 
     # GET /rides?driver_id=:driver_id
     def index
-        unless params[:driver_id]
-            render json: { error: "Param driver_id is required" }, status: :bad_request
-            return
+        # Driver validation
+        validation_result = Driver.find_and_validate(params[:driver_id])
+  
+        unless validation_result[:error_json].nil?
+          render json: validation_result[:error_json], status: validation_result[:status]
+          return
         end
 
+        # Paginate the Rides and return the paginated response
         begin
-            @driver = Driver.find(params[:driver_id])
-        rescue ActiveRecord::RecordNotFound
-            render json: { error: "Driver not found" }, status: :not_found
-            return
-        end
-
-        # First check the cache for pre-ordered Ride data and return one page of results
-        paginated_cached_result = PaginationService.check_driver_cache(@driver.id, params[:page], params[:per_page])
-        if paginated_cached_result
-            render json: paginated_cached_result
-            return
-        end
-
-        # If there is a cache miss:
-        # Fetch and score rides for the driver based on fresh Openrouteservice data and return Rides ordered by score.
-        begin
-            rides = Ride.prepare_data(@driver)
+            response = PaginationService.get_paginated_rides_response(validation_result[:driver], params[:page], params[:per_page])
         rescue HTTParty::Error, JSON::ParserError => e
             render json: { error: "Ride information could not be fetched.", status: :service_unavailable }
             return
@@ -34,9 +22,7 @@ class RidesController < ApplicationController
             return
         end
 
-        # Paginate the Rides and return the paginated response
-        paginated_rides_response = PaginationService.paginate_rides(rides, params[:page], params[:per_page])
-        render json: paginated_rides_response
+        render json: response
     end
 
     # GET /rides/:id

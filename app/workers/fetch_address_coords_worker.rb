@@ -24,11 +24,12 @@ class FetchAddressCoordsWorker
             driver.home_coords = driver_home_coords
             driver.save!
         end
+    rescue InvalidAddressError => e
+        Rails.logger.warn("Address provided for #{obj_class} with id=#{obj_id} has an address that could not be converted to coords.")
     rescue HTTParty::Error, JSON::ParserError => e
         Rails.logger.error("Error fetching coords from Openrouteservice: #{e.message}; Backtrace: #{e.backtrace.join("\n")}")
     rescue => e
-        ap e
-        Rails.logger.error("Database error. Backtrace: #{e.backtrace.join("\n")}")
+        Rails.logger.error("Unknown error. #{e.message}")
     end
 end
   

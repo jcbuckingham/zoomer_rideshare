@@ -117,7 +117,6 @@ RSpec.describe RidesController, type: :controller do
         end
 
         it 'returns a list of rides for the driver sorted by score' do
-            driver_rides = 
             get :index, params: { driver_id: driver.id }
             expect(response).to have_http_status(:success)
             expected_response = {

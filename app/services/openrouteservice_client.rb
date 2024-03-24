@@ -19,7 +19,10 @@ class OpenrouteserviceClient
         # The durations will be returned in the same order, so to process the result, we will also
         # rely on these pairings.
         rides.each do |ride|
+            # if coords are nil, the job to fetch coords has not run successfully. 
+            # Skip since we don't have enough data for the ride.
             next if ride.start_coords.nil? || ride.destination_coords.nil?
+
             location_pairs << ride.start_coords.split(",").map(&:to_f)
             location_pairs << ride.destination_coords.split(",").map(&:to_f)
         end
@@ -49,6 +52,7 @@ class OpenrouteserviceClient
         raise e
     end
 
+    # Used in FetchAddressCoordsWorker to fetch a set of coords based on a physical address
     def convert_address_to_coords(address)
         url = "#{@endpoint}/geocode/search?api_key=#{@api_key}&text=#{CGI.escape(address)}"
         response = HTTParty.get(url)
@@ -59,9 +63,9 @@ class OpenrouteserviceClient
             latitude = coordinates[1]
             longitude = coordinates[0]
             return "#{longitude},#{latitude}"
-        else
-            raise InvalidAddressError
         end
+        
+        raise InvalidAddressError
     rescue HTTParty::Error, JSON::ParserError => e
         Rails.logger.warn("Error converting address to coords: #{e}")
         raise e

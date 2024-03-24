@@ -54,6 +54,13 @@ RSpec.describe FetchAddressCoordsWorker, type: :worker do
                 allow(OpenrouteserviceClient).to receive(:new).and_return(client)
             end
 
+            it 'logs warn message when invalid address error occur' do
+                allow(client).to receive(:convert_address_to_coords).and_raise(InvalidAddressError)
+                expect(Rails.logger).to receive(:warn).with("Address provided for Ride with id=#{ride.id} has an address that could not be converted to coords.")
+                
+                described_class.new.perform('Ride', ride.id)
+            end
+
             it 'logs error message when HTTParty::Error or JSON::ParserError occurs' do
                 allow(client).to receive(:convert_address_to_coords).and_raise(HTTParty::Error)
                 expect(Rails.logger).to receive(:error).with(/Error fetching coords from Openrouteservice/)
@@ -63,7 +70,7 @@ RSpec.describe FetchAddressCoordsWorker, type: :worker do
 
             it 'logs error message when other errors occur' do
                 allow(client).to receive(:convert_address_to_coords).and_raise(StandardError)
-                expect(Rails.logger).to receive(:error).with(/Database error. Backtrace:/)
+                expect(Rails.logger).to receive(:error).with("Unknown error. StandardError")
                 
                 described_class.new.perform('Ride', ride.id)
             end

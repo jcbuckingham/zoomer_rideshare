@@ -1,4 +1,17 @@
 module PaginationService
+    def self.get_paginated_rides_response(driver, page_param, per_page_param)
+        # First check the cache for pre-ordered Ride data and return one page of results
+        paginated_cached_result = PaginationService.check_driver_cache(driver.id, page_param, per_page_param)
+        return paginated_cached_result if paginated_cached_result
+
+        # If there is a cache miss:
+        # Fetch and score rides for the driver based on fresh Openrouteservice data and return Rides ordered by score.
+        rides = Ride.prepare_data(driver)
+
+        # Paginate the Rides and return the paginated response
+        PaginationService.paginate_rides(rides, page_param, per_page_param)
+    end
+
     def self.check_driver_cache(driver_id, page_param, per_page_param)
         cache_key = "rides_for_driver_#{driver_id}"
         cached_ride_ids = Rails.cache.read(cache_key)

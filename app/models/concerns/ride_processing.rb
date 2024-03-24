@@ -35,6 +35,11 @@ module RideProcessing
             rsc.calculate_scores
 
             driver_rides.sort_routes_by_score!
+
+            # Uncomment this to display the DriverRide object in a nice, readable format to stdout
+            # This can be used to view all Rides and their scores and rankings for a Driver
+            # ap driver_rides
+
             driver_rides.rides_info.map(&:ride)
         end
     
