@@ -3,12 +3,12 @@ class RidesController < ApplicationController
 
     # GET /rides?driver_id=:driver_id
     def index
-        # Driver validation
-        validation_result = Driver.find_and_validate(params[:driver_id])
+        # Driver validation hash: { driver: :driver, error_json: :error_json, status: :status }
+        validation_result = DriverValidations.find_and_validate(params[:driver_id])
   
-        unless validation_result[:error_json].nil?
-          render json: validation_result[:error_json], status: validation_result[:status]
-          return
+        unless validation_result[:driver]
+            render json: validation_result[:error_json], status: validation_result[:status]
+            return
         end
 
         # Paginate the Rides and return the paginated response

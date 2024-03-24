@@ -14,7 +14,8 @@ module RideProcessing
     
             driver_rides = fetch_ride_data(driver, rides)
             ranked_rides = calculate_and_rank_scores(driver_rides)
-            ride_ids = ranked_rides.map(&:id)
+
+            ride_ids = ranked_rides.pluck(:id)
 
             # Cache the paginated response and expire it in 5 minutes so the driver can see new rides without much delay
             cache_key = "rides_for_driver_#{driver.id}"
@@ -43,7 +44,7 @@ module RideProcessing
             # This can be used to view all Rides and their scores and rankings for a Driver
             # ap driver_rides
 
-            driver_rides.rides_info.map(&:ride)
+            driver_rides.rides_info.pluck(:ride)
         end
     
         # The result received from Openrouteservice's matrix endpoint gives all the durations

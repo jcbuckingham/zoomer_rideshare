@@ -71,7 +71,7 @@ module PaginationService
 
         # Preserve the order of rides based on the cached order:
         # First create a hash to map ids to records for efficient lookup
-        ride_hash = rides.index_by(&:id)
+        ride_hash = rides.index_by { |ride| ride.id }
 
         # Then sort the records based on the order of the subarray ids since they are pre-ordered based on score
         paginated_rides = paginated_ride_ids.map { |id| ride_hash[id] }

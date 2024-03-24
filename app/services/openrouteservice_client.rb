@@ -13,7 +13,7 @@ class OpenrouteserviceClient
 
     def get_matrix_data(driver, rides)
         # The first location in the set will be the driver's home_coords
-        location_pairs = [driver.home_coords.split(",").map(&:to_f)]
+        location_pairs = [ driver.home_coords.split(",").map { |coords| coords.to_f } ]
 
         # Then locations are added in pairs: the ride's start_coords and destination_coords
         # The durations will be returned in the same order, so to process the result, we will also
@@ -23,8 +23,8 @@ class OpenrouteserviceClient
             # Skip since we don't have enough data for the ride.
             next if ride.start_coords.nil? || ride.destination_coords.nil?
 
-            location_pairs << ride.start_coords.split(",").map(&:to_f)
-            location_pairs << ride.destination_coords.split(",").map(&:to_f)
+            location_pairs << ride.start_coords.split(",").map { |coords| coords.to_f }
+            location_pairs << ride.destination_coords.split(",").map { |coords| coords.to_f }
         end
 
         request_payload = {
@@ -40,8 +40,10 @@ class OpenrouteserviceClient
             'Accept' => 'application/json',
         }
 
+        url = "#{@endpoint}/v2/matrix/driving-car"
+
         response = HTTParty.post(
-            "#{@endpoint}/v2/matrix/driving-car",
+            url,
             body: request_payload.to_json,
             headers: headers
         )
@@ -55,7 +57,9 @@ class OpenrouteserviceClient
     # Used in FetchAddressCoordsWorker to fetch a set of coords based on a physical address
     def convert_address_to_coords(address)
         url = "#{@endpoint}/geocode/search?api_key=#{@api_key}&text=#{CGI.escape(address)}"
+        
         response = HTTParty.get(url)
+        
         data = JSON.parse(response.body)
 
         if data['features'] && !data['features'].empty?
