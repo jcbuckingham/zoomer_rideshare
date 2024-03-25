@@ -12,6 +12,7 @@ module PaginationService
         PaginationService.paginate_rides(rides, page_param, per_page_param)
     end
 
+    # Looks for a cache hit and fetches result from cache if found
     def self.check_driver_cache(driver_id, page_param, per_page_param)
         cache_key = "rides_for_driver_#{driver_id}"
         cached_ride_ids = Rails.cache.read(cache_key)

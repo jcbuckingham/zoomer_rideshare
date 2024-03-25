@@ -7,7 +7,6 @@ end
 class OpenrouteserviceClient
     def initialize
         @api_key = ENV['OPENROUTESERVICE_API_KEY']
-        Rails.logger.info("api_key: #{@api_key}")
         @endpoint = ENV['OPENROUTESERVICE_ENDPOINT']
     end
 
@@ -19,8 +18,8 @@ class OpenrouteserviceClient
         # The durations will be returned in the same order, so to process the result, we will also
         # rely on these pairings.
         rides.each do |ride|
-            # if coords are nil, the job to fetch coords has not run successfully. 
-            # Skip since we don't have enough data for the ride.
+            # If coords are nil, the job to fetch coords has not run successfully. 
+            # Skip since we don't have enough data for a ride without coords.
             next if ride.start_coords.nil? || ride.destination_coords.nil?
 
             location_pairs << ride.start_coords.split(",").map { |coords| coords.to_f }
@@ -29,9 +28,9 @@ class OpenrouteserviceClient
 
         request_payload = {
             'locations' => location_pairs,
-            'metrics' => ['duration', 'distance'], # specifies the data type to fetch
-            'resolve_locations': false, # skipping closest street name data
-            'units': 'mi' # in miles
+            'metrics' => ['duration', 'distance'], # Specifies the data type to fetch
+            'resolve_locations': false,            # Skipping closest street name data
+            'units': 'mi'                          # In miles
         }
 
         headers = {
@@ -54,7 +53,7 @@ class OpenrouteserviceClient
         raise e
     end
 
-    # Used in FetchAddressCoordsWorker to fetch a set of coords based on a physical address
+    # Fetches a set of coords based on a physical address on Driver or Ride creation
     def convert_address_to_coords(address)
         url = "#{@endpoint}/geocode/search?api_key=#{@api_key}&text=#{CGI.escape(address)}"
         

@@ -1,7 +1,7 @@
 module DriverValidations
     extend ActiveSupport::Concern
 
-    # Returns a validation hash with key :driver if successful, else :error_json and :status to return correct error response
+    # Returns a Driver object if successful, else a hash with error info 
     def self.find_and_validate(driver_id)
         return { error_json: { error: "Param driver_id is required" }, status: :bad_request } unless driver_id.present?
 

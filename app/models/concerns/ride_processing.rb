@@ -4,8 +4,7 @@ module RideProcessing
     class_methods do
         # Called from the RideController, fetches Ride records, 
         def prepare_data(driver)
-            # Note: I would never load a whole table in real life.  I am doing so here for simplicity, but acknowledge that it is a
-            # terrible practice.  With more time I would introduce fields to filter Rides on and also process records in batches and store 
+            # Note: Loading a whole table is not a good practice. I am doing so here for simplicity.  With more time I would introduce fields to filter Rides on and also process records in batches and store 
             # the score results in the cache as I went since I have a mechanism to return paginated results from the cache already.
             rides = Ride.all
 
@@ -35,15 +34,10 @@ module RideProcessing
 
         # Calculates all scores and add them to the DriverRides then sorts the DriverRides.rides_info by score
         def calculate_and_rank_scores(driver_rides)
-            rsc = RideScoreCalculator.new(driver_rides)
-            rsc.calculate_scores
+            calculator = RideScoreCalculator.new(driver_rides)
+            calculator.calculate_scores
 
-            driver_rides.sort_routes_by_score!
-
-            # Uncomment this to display the DriverRide object in a nice, readable format to stdout
-            # This can be used to view all Rides and their scores and rankings for a Driver
-            # ap driver_rides
-
+            driver_rides.sort_rides_by_score!
             driver_rides.rides_info.pluck(:ride)
         end
     
@@ -94,8 +88,10 @@ module RideProcessing
         end
     end
   
-    class DriverRides < Struct.new(:rides_info)
-        def sort_routes_by_score!
+    class DriverRides < Struct.new(
+        :rides_info
+    )
+        def sort_rides_by_score!
             rides_info.sort_by! { |ride_info| -ride_info.ride_score }
         end
     end
