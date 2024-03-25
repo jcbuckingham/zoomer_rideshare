@@ -10,6 +10,10 @@ Also, since the Rails Assessment doc stated the Driver and Rides have addresses,
 
 Since the Driver and Ride creation controllers are fully synchronous and include calls to Openrouteservice, the response is slow.  I didn't optimize for performance here, but the Openrouteservice calls could be done asynchronously.
 
+#### Important assumption 
+
+An improvement would be to cache the score for each Ride/Driver but I wasn't sure if durations could change. I wrote this solution based on the assumption that fresh data was more accurate, but with static data this project could be improved to only fetch new Rides from Openrouteservice. This would saved on fetching and re-scoring the old Rides and limit the Rides records processed on repeat requests outside of the cache expiration window.
+
 ### Including the driver_id
 
 For the Ride API, I decided to include the driver_id as a GET parameter for a number of reasons, although it's not a perfect solution. The Rides are not associated to a Driver, so nesting drivers/:driver_id/rides doesn't seem appropriate, and this path would likely be used for Rides that the Driver has agreed to drive (outside the scope of this project).  Ideally, the Driver would be logged in and we could use :current_user or similar, but since auth was also out of scope, I went with the GET param as a compromise between the two. 
