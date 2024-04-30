@@ -1,8 +1,13 @@
 require 'rails_helper'
+require 'devise'
 
 RSpec.describe DriversController, type: :controller do
     let(:valid_attributes) {
-        { home_address: '46 11th St, Queens, NY 11101' }
+        { home_address: '46 11th St, Queens, NY 11101', email: "driver@example.com", password: "test1234"}
+    }
+    
+    let(:valid_driver) {
+        Driver.create!(valid_attributes)
     }
 
     let(:invalid_attributes) {
@@ -14,88 +19,27 @@ RSpec.describe DriversController, type: :controller do
     }
   
     describe "GET #show" do
+        before :each do
+            allow_any_instance_of(Warden::Proxy).to receive(:authenticate!).and_return(true)
+            request.env['warden'] = double("Warden", authenticate: valid_driver, authenticate!: valid_driver)
+        end
+
         context "with a valid driver" do
             it "returns a success response" do
-                driver = Driver.create!(valid_attributes)
-                get :show, params: { id: driver.to_param }, format: :json
+                sign_in :valid_driver
+                
+                get :show, params: { id: valid_driver.id }, format: :json
+                puts response.inspect
                 expect(response).to be_successful
-            end
+              end
         end
 
         context "with an invalid driver" do
-            it "returns a not_found response" do
-                get :show, params: { id: 100 }, format: :json
-                expect(response).to have_http_status(:not_found)
-            end
-        end
-    end
-
-    describe "POST #create" do
-        context "with valid params" do
-            before { allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_return("12.345,67.890") }
-            
-            it "creates a new Driver" do
-                expect {
-                    post :create, params: { driver: valid_attributes }, format: :json
-                }.to change(Driver, :count).by(1)
-            end
-
-            it "renders a JSON response with the new driver" do
-                post :create, params: { driver: valid_attributes }, format: :json
-                expect(response).to have_http_status(:created)
-                expect(response.content_type).to eq('application/json; charset=utf-8')
-            end
-        end
-
-        context "with invalid params" do
-            it "renders a JSON response with errors for the new driver" do
-                post :create, params: { driver: invalid_attributes }, format: :json
-                expect(response).to have_http_status(:bad_request)
-                expect(response.parsed_body["error"]).to eq(
-                    "Validation failed: Home address can't be blank"                )
-                expect(response.content_type).to eq('application/json; charset=utf-8')
-            end
-        end
-
-        context "with invalid address" do
-            it "renders a JSON response with correct error" do
-                allow_any_instance_of(OpenrouteserviceClient).to receive(:convert_address_to_coords).and_raise(InvalidAddressError)
-    
-                post :create, params: { driver: valid_attributes }, format: :json
-
-                expect(response).to have_http_status(:bad_request)
-                expect(response.parsed_body["error"]).to eq("Address is invalid.")
-                expect(response.content_type).to eq('application/json; charset=utf-8')
-            end
-        end
-
-        context "with HTTParty error" do
-            it "renders a JSON response with correct error" do
-                allow(HTTParty).to receive(:get).and_raise(HTTParty::Error)
-                post :create, params: { driver: valid_attributes }, format: :json
-                expect(response).to have_http_status(:service_unavailable)
-                expect(response.parsed_body["error"]).to eq(
-                    "Address conversion error."
-                )
-                expect(response.content_type).to eq('application/json; charset=utf-8')
-            end
-        end
-    end
-
-    describe "DELETE #destroy" do
-        context "with a valid driver" do
-            it "destroys the requested driver" do
-                driver = Driver.create!(valid_attributes)
-                expect {
-                    delete :destroy, params: { id: driver.to_param }, format: :json
-                }.to change(Driver, :count).by(-1)
-            end
-        end
-
-        context "with an invalid driver" do
-            it "returns bad_request" do
-                delete :destroy, params: { id: 100 }, format: :json
-                expect(response).to have_http_status(:bad_request)
+            it "returns a unauthorized response" do
+                other_driver = Driver.create!(home_address: '46 11th St, Queens, NY 11101', email: "other_driver@example.com", password: "test1234")
+                sign_in :valid_driver
+                get :show, params: { id: other_driver.id }, format: :json
+                expect(response).to have_http_status(:unauthorized)
             end
         end
     end

@@ -9,7 +9,15 @@ RSpec.describe RidesController, type: :controller do
         { foo: "bar" }
     }
 
-    let(:driver) { Driver.create!(home_address: '46 11th St, Queens, NY 11101', home_coords: '8.681495,49.41461') }
+    let(:driver) { 
+        Driver.create!(
+            name: "Mary Poppins",
+            home_address: '46 11th St, Queens, NY 11101', 
+            email: "driver@example.com", 
+            password: "test1234",
+            home_coords: '8.681495,49.41461'   
+        )
+    }
     let!(:ride1) do 
         Ride.create!(
             start_address: '10 43rd Ave, Queens, NY 11101', 
@@ -42,13 +50,18 @@ RSpec.describe RidesController, type: :controller do
             destination_coords: '8.692301,49.414658'
         )
     end
+    before :each do
+        allow_any_instance_of(Warden::Proxy).to receive(:authenticate!).and_return(true)
+        request.env['warden'] = double("Warden", authenticate: driver, authenticate!: driver)
+        sign_in driver
+    end
 
     describe "GET #show" do
         context "with a valid ride" do
             it "returns a success response" do
                 ride = Ride.create!(valid_attributes)
-            get :show, params: { id: ride.to_param }, format: :json
-            expect(response).to be_successful
+                get :show, params: { id: ride.to_param }, format: :json
+                expect(response).to be_successful
             end
         end
 

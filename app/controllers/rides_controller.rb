@@ -1,4 +1,5 @@
 class RidesController < ApplicationController
+    before_action :authenticate_driver!
     include PaginationService
 
     # GET /rides?driver_id=:driver_id

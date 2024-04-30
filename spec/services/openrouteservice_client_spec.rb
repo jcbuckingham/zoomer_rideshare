@@ -19,7 +19,15 @@ RSpec.describe OpenrouteserviceClient do
     end
 
     describe '#get_matrix_data' do
-        let(:driver) { Driver.create!(home_address: '10 43rd Ave, Queens, NY 11101', home_coords: '8.681495,49.41461') }
+        let(:driver) { 
+            Driver.create!(
+                name: "Mary Poppins",
+                home_address: '46 11th St, Queens, NY 11101', 
+                email: "driver@example.com", 
+                password: "test1234",
+                home_coords: '8.681495,49.41461'   
+            )
+        }
         let!(:ride1) do 
             Ride.create!(
                 start_address: '30 23rd St, Queens, NY 11101', 
